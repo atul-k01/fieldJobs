@@ -54,21 +54,21 @@ CREATE POLICY "Allow public read-write for demo jobs" ON public.jobs FOR ALL USI
 CREATE POLICY "Allow public read-write for demo checklists" ON public.job_checklists FOR ALL USING (true) WITH CHECK (true);
 
 -- ============================================================================
--- 5. Seed Demo Technicians
+-- 5. Seed Demo Technicians (Atul Kumar & Nitin Sharma)
 -- ============================================================================
 INSERT INTO public.technicians (id, email, name)
 VALUES 
-    ('tech-001-alex', 'alex@fieldjobs.com', 'Alex Rivera'),
-    ('tech-002-sarah', 'sarah@fieldjobs.com', 'Sarah Connor')
+    ('tech-001-atul', 'atul@fieldjobs.com', 'Atul Kumar'),
+    ('tech-002-nitin', 'nitin@fieldjobs.com', 'Nitin Sharma')
 ON CONFLICT (id) DO UPDATE 
 SET email = EXCLUDED.email, name = EXCLUDED.name;
 
 -- ============================================================================
--- 6. Seed 200 Demo Jobs Spread across 14 days
+-- 6. Seed 200 Demo Jobs in Tricity (Chandigarh, Mohali, Panchkula)
 -- ============================================================================
 DO $$
 DECLARE
-    tech_emails TEXT[] := ARRAY['alex@fieldjobs.com', 'sarah@fieldjobs.com'];
+    tech_emails TEXT[] := ARRAY['atul@fieldjobs.com', 'nitin@fieldjobs.com'];
     tech_email TEXT;
     day_offset INT;
     job_idx INT;

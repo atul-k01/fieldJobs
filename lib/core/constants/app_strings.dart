@@ -16,8 +16,8 @@ class AppStrings {
   static const String loginButton = 'Sign In';
   static const String loggingIn = 'Signing in...';
   static const String demoAccountsNotice = 'Demo Accounts:';
-  static const String demoAccount1 = 'alex@fieldjobs.com';
-  static const String demoAccount2 = 'sarah@fieldjobs.com';
+  static const String demoAccount1 = 'atul@fieldjobs.com';
+  static const String demoAccount2 = 'nitin@fieldjobs.com';
   static const String demoPasswordNotice =
       'Password: password123 (or tap to autofill)';
   static const String signOut = 'Sign Out';

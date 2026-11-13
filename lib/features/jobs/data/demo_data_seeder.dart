@@ -121,7 +121,7 @@ class DemoDataSeeder {
     final now = DateTime.now();
     final dateFormat = DateFormat('yyyy-MM-dd');
 
-    final techs = ['alex@fieldjobs.com', 'sarah@fieldjobs.com'];
+    final techs = ['atul@fieldjobs.com', 'nitin@fieldjobs.com'];
 
     int jobCounter = 1;
 

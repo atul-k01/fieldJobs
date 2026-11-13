@@ -13,17 +13,17 @@ class AuthRepository extends BaseRepository {
   static const String _keyUserEmail = 'auth_user_email';
   static const String _keyUserName = 'auth_user_name';
 
-  // Demo accounts configured for evaluation
+  // Demo accounts configured for evaluation (Atul Kumar & Nitin Sharma)
   static const List<TechnicianModel> demoTechnicians = [
     TechnicianModel(
-      id: 'tech-001-alex',
-      email: 'alex@fieldjobs.com',
-      name: 'Alex Rivera',
+      id: 'tech-001-atul',
+      email: 'atul@fieldjobs.com',
+      name: 'Atul Kumar',
     ),
     TechnicianModel(
-      id: 'tech-002-sarah',
-      email: 'sarah@fieldjobs.com',
-      name: 'Sarah Connor',
+      id: 'tech-002-nitin',
+      email: 'nitin@fieldjobs.com',
+      name: 'Nitin Sharma',
     ),
   ];
 
@@ -85,7 +85,7 @@ class AuthRepository extends BaseRepository {
           (tech) => tech.email.toLowerCase() == cleanEmail,
           orElse: () {
             AppLog.e('AuthRepository', 'Invalid email entered: $cleanEmail');
-            throw AuthException(message: 'Invalid technician email. Use alex@fieldjobs.com or sarah@fieldjobs.com');
+            throw AuthException(message: 'Invalid technician email. Use atul@fieldjobs.com or nitin@fieldjobs.com');
           },
         );
 
