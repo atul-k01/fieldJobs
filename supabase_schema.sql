@@ -72,6 +72,7 @@ DECLARE
     tech_email TEXT;
     day_offset INT;
     job_idx INT;
+    jobs_count INT;
     job_id_counter INT := 1;
     curr_job_id TEXT;
     appliances TEXT[] := ARRAY[
@@ -128,8 +129,15 @@ BEGIN
     FOREACH tech_email IN ARRAY tech_emails LOOP
         -- Generate 100 jobs per technician: 2 overdue (day -1), 5 today (day 0), rest upcoming (day 1..12)
         FOR day_offset IN -1..12 LOOP
-            FOR job_idx IN 1..CASE WHEN day_offset = -1 THEN 2 WHEN day_offset = 0 THEN 5 ELSE 7 END LOOP
-            LOOP
+            IF day_offset = -1 THEN
+                jobs_count := 2;
+            ELSIF day_offset = 0 THEN
+                jobs_count := 5;
+            ELSE
+                jobs_count := 7;
+            END IF;
+
+            FOR job_idx IN 1..jobs_count LOOP
                 curr_job_id := 'job-' || LPAD(job_id_counter::text, 4, '0');
                 
                 INSERT INTO public.jobs (
