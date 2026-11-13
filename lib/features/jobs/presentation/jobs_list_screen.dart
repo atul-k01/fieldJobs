@@ -4,8 +4,10 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimens.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/database/app_database.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../core/utils/app_log.dart';
+import '../../../core/utils/app_snackbar.dart';
 import '../../../core/widgets/offline_banner.dart';
 import '../../../core/widgets/sign_out_dialog.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -51,6 +53,27 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
         await ref.read(authStateProvider.notifier).signOut();
       },
     );
+  }
+
+  Future<void> _performManualSync() async {
+    final email = ref.read(authStateProvider).user?.email;
+    if (email == null) return;
+    AppLog.d('JobsListScreen', 'Manual sync triggered for $email');
+    if (mounted) {
+      AppSnackBar.showInfo(context, AppStrings.syncing);
+    }
+
+    await ref.read(syncEngineProvider).syncAll(email);
+    await ref.read(jobsProvider.notifier).loadJobs();
+
+    if (!mounted) return;
+    final pending = await AppDatabase.instance.getPendingSyncCount();
+    if (!mounted) return;
+    if (pending == 0) {
+      AppSnackBar.showSuccess(context, AppStrings.syncSuccess);
+    } else {
+      AppSnackBar.showWarning(context, '$pending ${AppStrings.unsyncedChanges}');
+    }
   }
 
   @override
@@ -130,6 +153,20 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
           ],
         ),
         actions: [
+          IconButton(
+            icon: syncStatus?.isSyncing == true
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  )
+                : const Icon(Icons.sync_rounded, color: AppColors.primary),
+            tooltip: AppStrings.syncNow,
+            onPressed: (syncStatus?.isSyncing == true) ? null : _performManualSync,
+          ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
             tooltip: AppStrings.signOut,
@@ -246,10 +283,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
             isOnline: isOnline,
             pendingCount: syncStatus?.pendingCount ?? 0,
             isSyncing: syncStatus?.isSyncing ?? false,
-            onSyncPressed: () {
-              AppLog.d('JobsListScreen', 'Manual sync triggered by technician');
-              ref.read(syncEngineProvider).processQueue();
-            },
+            onSyncPressed: _performManualSync,
           ),
 
           // Main Job Lists (3 Tabs)
@@ -293,7 +327,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
   }) {
     if (overdueJobs.isEmpty && todayJobs.isEmpty) {
       return RefreshIndicator(
-        onRefresh: () => ref.read(jobsProvider.notifier).loadJobs(),
+        onRefresh: _performManualSync,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
@@ -325,10 +359,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
     }
 
     return RefreshIndicator(
-      onRefresh: () async {
-        await ref.read(jobsProvider.notifier).loadJobs();
-        await ref.read(syncEngineProvider).processQueue();
-      },
+      onRefresh: _performManualSync,
       child: ListView(
         padding: const EdgeInsets.all(AppDimens.space16),
         children: [
@@ -444,7 +475,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
   }) {
     if (jobs.isEmpty) {
       return RefreshIndicator(
-        onRefresh: () => ref.read(jobsProvider.notifier).loadJobs(),
+        onRefresh: _performManualSync,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
@@ -476,10 +507,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
     }
 
     return RefreshIndicator(
-      onRefresh: () async {
-        await ref.read(jobsProvider.notifier).loadJobs();
-        await ref.read(syncEngineProvider).processQueue();
-      },
+      onRefresh: _performManualSync,
       child: ListView.builder(
         padding: const EdgeInsets.all(AppDimens.space16),
         itemCount: jobs.length,

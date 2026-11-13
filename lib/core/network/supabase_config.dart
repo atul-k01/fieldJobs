@@ -17,7 +17,17 @@ class SupabaseConfig {
   );
 
   static bool _isInitialized = false;
-  static bool get isInitialized => _isInitialized;
+  static bool get isInitialized {
+    if (_isInitialized) return true;
+    try {
+      final c = Supabase.instance.client;
+      // ignore: unnecessary_null_comparison
+      _isInitialized = (c != null);
+      return _isInitialized;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Safely initialize Supabase. If network fails or keys are invalid,
   /// the app operates gracefully in durable offline mode.

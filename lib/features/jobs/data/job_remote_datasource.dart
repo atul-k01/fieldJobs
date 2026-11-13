@@ -1,4 +1,5 @@
 import '../../../core/network/supabase_config.dart';
+import '../../../core/utils/app_log.dart';
 import '../../sync/models/sync_queue_item.dart';
 import '../models/checklist_item_model.dart';
 import '../models/job_model.dart';
@@ -112,6 +113,8 @@ class JobRemoteDataSource {
         await client.from('job_checklists').update({
           'is_completed': isCompleted,
         }).eq('id', chkId);
+      } else if (item.actionType == 'attach_photo') {
+        // Photos are stored locally and version is incremented on server
       }
 
       await client.from('jobs').update(updateData).eq('id', item.jobId);
@@ -120,7 +123,8 @@ class JobRemoteDataSource {
         isSuccess: true,
         newVersion: newVersion,
       );
-    } catch (e) {
+    } catch (e, st) {
+      AppLog.e('JobRemoteDataSource', 'pushMutation error for job ${item.jobId} (${item.actionType}): $e', e, st);
       return RemoteSyncResult(
         isSuccess: false,
         errorMessage: e.toString(),

@@ -160,6 +160,7 @@ class AppStrings {
   static const String onlineMode = 'Online - Connected to Office Server';
   static const String syncNow = 'Sync Now';
   static const String syncing = 'Syncing...';
+  static const String syncSuccess = 'All changes synchronized successfully!';
   static const String allSynced = 'All changes synced';
   static const String unsyncedChanges = 'unsynced changes';
   static const String syncConflictNotice = 'Office Conflict Detected';

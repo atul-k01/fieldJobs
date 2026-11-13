@@ -2,6 +2,7 @@ import 'dart:async';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/tables.dart';
 import '../../../core/network/connectivity_service.dart';
+import '../../../core/network/supabase_config.dart';
 import '../../../core/utils/app_log.dart';
 import '../../jobs/data/job_local_datasource.dart';
 import '../../jobs/data/job_remote_datasource.dart';
@@ -72,7 +73,16 @@ class SyncEngine {
   SyncStatusState get currentState => _currentState;
 
   void _init() {
-    refreshPendingCount();
+    _dbManager.database.then((db) async {
+      // Revert any leftover in_flight items back to pending on startup
+      await db.update(
+        DbTables.syncQueue,
+        {SyncQueueColumns.status: 'pending'},
+        where: '${SyncQueueColumns.status} = ?',
+        whereArgs: ['in_flight'],
+      );
+      refreshPendingCount();
+    });
 
     // Auto-sync whenever network connectivity returns
     _connectivitySubscription = _connectivityService.onConnectivityChanged.listen((isOnline) {
@@ -92,6 +102,22 @@ class SyncEngine {
     _statusController.add(_currentState);
   }
 
+  /// Performs full two-way sync: flushes outbox mutations and pulls latest server jobs
+  Future<void> syncAll(String email) async {
+    await processQueue();
+    if (SupabaseConfig.isInitialized) {
+      try {
+        final remoteJobs = await _remoteDataSource.fetchJobsForTechnician(email);
+        if (remoteJobs.isNotEmpty) {
+          await _localDataSource.saveRemoteJobs(email, remoteJobs);
+        }
+      } catch (e) {
+        AppLog.w('SyncEngine', 'Failed to pull remote jobs during syncAll: $e');
+      }
+    }
+    await refreshPendingCount();
+  }
+
   /// Process the durable SQLite sync queue in FIFO order
   Future<void> processQueue() async {
     if (_isProcessing) {
@@ -104,6 +130,14 @@ class SyncEngine {
 
     try {
       final db = await _dbManager.database;
+
+      // 0. Revert any stale in_flight items back to pending
+      await db.update(
+        DbTables.syncQueue,
+        {SyncQueueColumns.status: 'pending'},
+        where: '${SyncQueueColumns.status} = ?',
+        whereArgs: ['in_flight'],
+      );
 
       // 1. Fetch pending mutations in chronological order
       final List<Map<String, dynamic>> rows = await db.query(
@@ -167,9 +201,20 @@ class SyncEngine {
               conflictNotice: resolution.explanation,
             ));
           }
+        } else if (result.errorMessage?.contains('not found on server') == true ||
+            item.retryCount >= 3) {
+          // Missing/truncated job on server or exhausted retries:
+          // Discard orphaned mutation so queue isn't blocked forever
+          AppLog.w('SyncEngine', 'Dropping orphaned/stale mutation ${item.id} for job ${item.jobId}: ${result.errorMessage}');
+          await db.delete(
+            DbTables.syncQueue,
+            where: '${SyncQueueColumns.id} = ?',
+            whereArgs: [item.id],
+          );
         } else {
           // Transient failure (network dropped):
           // Increment retry count and revert status to pending
+          AppLog.w('SyncEngine', 'Transient failure pushing ${item.jobId}: ${result.errorMessage}');
           await db.update(
             DbTables.syncQueue,
             {
