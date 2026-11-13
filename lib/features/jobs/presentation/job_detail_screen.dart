@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimens.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/navigation/app_navigator.dart';
 import '../../../core/utils/app_log.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/status_chip.dart';
@@ -140,7 +141,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => AppNavigator.pop(context),
           ),
           title: const Text(AppStrings.jobDetails),
         ),
@@ -152,11 +153,11 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // Explicit Prominent Back Button
+        // Explicit Prominent Back Button via AppNavigator
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary, size: 26),
           tooltip: 'Back to Jobs',
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => AppNavigator.pop(context),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

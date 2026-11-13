@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/app_strings.dart';
+import 'core/navigation/app_navigator.dart';
 import 'core/network/supabase_config.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/login_screen.dart';
@@ -28,6 +29,7 @@ class FieldJobsApp extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return MaterialApp(
+      navigatorKey: AppNavigator.navigatorKey,
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,

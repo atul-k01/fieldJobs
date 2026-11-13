@@ -4,13 +4,13 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimens.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/navigation/app_navigator.dart';
 import '../../../core/utils/app_log.dart';
 import '../../../core/widgets/offline_banner.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../sync/providers/sync_provider.dart';
 import '../models/job_model.dart';
 import '../providers/jobs_provider.dart';
-import 'job_detail_screen.dart';
 import 'widgets/job_card.dart';
 
 class JobsListScreen extends ConsumerStatefulWidget {
@@ -328,13 +328,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
           return JobCard(
             job: job,
             onTap: () {
-              AppLog.d('JobsListScreen', 'Navigating to details for job ${job.id}');
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => JobDetailScreen(jobId: job.id),
-                ),
-              );
+              AppNavigator.goToJobDetail(context, job.id);
             },
           );
         },

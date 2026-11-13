@@ -2,11 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../sync/providers/sync_provider.dart';
 import '../data/job_local_datasource.dart';
+import '../data/job_repository.dart';
 import '../models/job_model.dart';
 import '../../../core/utils/date_formatter.dart';
 
 final jobLocalDataSourceProvider = Provider<JobLocalDataSource>((ref) {
   return JobLocalDataSource();
+});
+
+final jobRepositoryProvider = Provider<JobRepository>((ref) {
+  final syncEngine = ref.watch(syncEngineProvider);
+  return JobRepository(syncEngine: syncEngine);
 });
 
 class JobsState {
@@ -82,11 +88,11 @@ class JobsState {
 }
 
 class JobsNotifier extends StateNotifier<JobsState> {
-  final JobLocalDataSource _localDataSource;
+  final JobRepository _repository;
   final Ref _ref;
   String? _currentUserEmail;
 
-  JobsNotifier(this._localDataSource, this._ref) : super(const JobsState(isLoading: true)) {
+  JobsNotifier(this._repository, this._ref) : super(const JobsState(isLoading: true)) {
     _init();
   }
 
@@ -105,8 +111,8 @@ class JobsNotifier extends StateNotifier<JobsState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      await _localDataSource.ensureDemoDataSeeded(_currentUserEmail!);
-      final jobs = await _localDataSource.getJobsForTechnician(_currentUserEmail!);
+      await _repository.ensureDemoDataSeeded(_currentUserEmail!);
+      final jobs = await _repository.getJobsForTechnician(_currentUserEmail!);
       state = JobsState(allJobs: jobs, isLoading: false);
       _ref.read(syncEngineProvider).refreshPendingCount();
     } catch (e) {
@@ -118,39 +124,30 @@ class JobsNotifier extends StateNotifier<JobsState> {
   }
 
   Future<void> updateJobStatus(String jobId, String status, {String? reason}) async {
-    await _localDataSource.updateJobStatus(jobId, status, reason: reason);
+    await _repository.updateJobStatus(jobId, status, reason: reason);
     await _reloadSingleJob(jobId);
-    _ref.read(syncEngineProvider).refreshPendingCount();
-    // Try to sync in background if online
-    _ref.read(syncEngineProvider).processQueue();
   }
 
   Future<void> toggleChecklistItem(String itemId, String jobId, bool isCompleted) async {
-    await _localDataSource.toggleChecklistItem(itemId, jobId, isCompleted);
+    await _repository.toggleChecklistItem(itemId, jobId, isCompleted);
     await _reloadSingleJob(jobId);
-    _ref.read(syncEngineProvider).refreshPendingCount();
-    _ref.read(syncEngineProvider).processQueue();
   }
 
   Future<void> saveNotes(String jobId, String notes) async {
-    await _localDataSource.saveNotes(jobId, notes);
+    await _repository.saveNotes(jobId, notes);
     await _reloadSingleJob(jobId);
-    _ref.read(syncEngineProvider).refreshPendingCount();
-    _ref.read(syncEngineProvider).processQueue();
   }
 
   Future<bool> attachPhoto(String jobId, String localPath) async {
-    final success = await _localDataSource.attachPhoto(jobId, localPath);
+    final success = await _repository.attachPhoto(jobId, localPath);
     if (success) {
       await _reloadSingleJob(jobId);
-      _ref.read(syncEngineProvider).refreshPendingCount();
-      _ref.read(syncEngineProvider).processQueue();
     }
     return success;
   }
 
   Future<void> _reloadSingleJob(String jobId) async {
-    final updatedJob = await _localDataSource.getJobById(jobId);
+    final updatedJob = await _repository.getJobById(jobId);
     if (updatedJob == null) return;
 
     final updatedList = state.allJobs.map((j) {
@@ -162,6 +159,6 @@ class JobsNotifier extends StateNotifier<JobsState> {
 }
 
 final jobsProvider = StateNotifierProvider<JobsNotifier, JobsState>((ref) {
-  final localDs = ref.watch(jobLocalDataSourceProvider);
-  return JobsNotifier(localDs, ref);
+  final repo = ref.watch(jobRepositoryProvider);
+  return JobsNotifier(repo, ref);
 });
