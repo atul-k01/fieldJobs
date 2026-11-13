@@ -7,6 +7,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../core/utils/app_log.dart';
 import '../../../core/widgets/offline_banner.dart';
+import '../../../core/widgets/sign_out_dialog.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../sync/providers/sync_provider.dart';
 import '../models/job_model.dart';
@@ -42,63 +43,14 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
 
     if (!mounted) return;
 
-    if (pendingCount > 0) {
-      // Unsynced changes warning dialog
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Row(
-            children: const [
-              Icon(Icons.warning_amber_rounded, color: AppColors.warning),
-              SizedBox(width: 8),
-              Expanded(child: Text(AppStrings.unsyncedWarningTitle)),
-            ],
-          ),
-          content: Text(
-            'You have $pendingCount unsynced changes. ${AppStrings.unsyncedWarningMsg}',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(AppStrings.cancel),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-              onPressed: () async {
-                Navigator.pop(ctx);
-                AppLog.w('JobsListScreen', 'User confirmed sign out with pending changes');
-                await ref.read(authStateProvider.notifier).signOut();
-              },
-              child: const Text(AppStrings.proceedSignOut),
-            ),
-          ],
-        ),
-      );
-    } else {
-      // Safe sign out dialog
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text(AppStrings.signOutConfirmTitle),
-          content: const Text(AppStrings.signOutConfirmMsg),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(AppStrings.cancel),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              onPressed: () async {
-                Navigator.pop(ctx);
-                AppLog.i('JobsListScreen', 'User confirmed safe sign out');
-                await ref.read(authStateProvider.notifier).signOut();
-              },
-              child: const Text(AppStrings.signOut),
-            ),
-          ],
-        ),
-      );
-    }
+    await SignOutDialog.show(
+      context: context,
+      pendingSyncCount: pendingCount,
+      onConfirm: () async {
+        AppLog.i('JobsListScreen', 'User confirmed sign out (pendingCount: $pendingCount)');
+        await ref.read(authStateProvider.notifier).signOut();
+      },
+    );
   }
 
   @override

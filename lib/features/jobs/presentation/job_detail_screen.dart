@@ -7,6 +7,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../core/utils/app_log.dart';
+import '../../../core/utils/external_launcher.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../../core/widgets/sync_badge.dart';
@@ -502,24 +503,90 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                       icon: Icons.phone_outlined,
                       title: 'Contact Phone',
                       value: job.customerPhone.isNotEmpty ? job.customerPhone : 'Not provided',
+                      onTap: job.customerPhone.isNotEmpty
+                          ? () => ExternalLauncher.makePhoneCall(context, job.customerPhone)
+                          : null,
+                      trailing: job.customerPhone.isNotEmpty
+                          ? InkWell(
+                              onTap: () => ExternalLauncher.makePhoneCall(context, job.customerPhone),
+                              borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD1FAE5),
+                                  borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.call_rounded, size: 14, color: Color(0xFF059669)),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Call',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF059669),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : null,
                     ),
                     const SizedBox(height: AppDimens.space12),
                     _buildInfoRow(
                       icon: Icons.location_on_outlined,
                       title: AppStrings.address,
                       value: job.address,
-                      trailing: IconButton(
-                        icon: const Icon(Icons.copy_rounded, size: 18, color: AppColors.primary),
-                        tooltip: 'Copy Address',
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: job.address));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Address copied to clipboard'),
-                              duration: Duration(seconds: 1),
+                      onTap: () => ExternalLauncher.openMapAddress(context, job.address),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: () => ExternalLauncher.openMapAddress(context, job.address),
+                            borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppColors.primarySurface,
+                                borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                                border: Border.all(color: AppColors.primaryLight),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.directions_rounded, size: 14, color: AppColors.primaryDark),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Map',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          );
-                        },
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: const Icon(Icons.copy_rounded, size: 18, color: AppColors.textSecondary),
+                            tooltip: 'Copy Address',
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: job.address));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Address copied to clipboard'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -676,8 +743,9 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
     required String title,
     required String value,
     Widget? trailing,
+    VoidCallback? onTap,
   }) {
-    return Row(
+    final content = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 20, color: AppColors.primary),
@@ -704,5 +772,18 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
         if (trailing != null) trailing,
       ],
     );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: content,
+        ),
+      );
+    }
+
+    return content;
   }
 }
