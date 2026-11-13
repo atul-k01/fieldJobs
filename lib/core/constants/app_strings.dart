@@ -14,6 +14,13 @@ class AppStrings {
   static const String emailLabel = 'Technician Email';
   static const String emailHint = 'e.g. atul@fieldjobs.com';
   static const String passwordLabel = 'Password';
+  static const String passwordHint = 'Enter password';
+  static const String emailRequired = 'Technician email is required';
+  static const String passwordRequired = 'Password is required';
+  static const String invalidEmail = 'Please enter a valid email address';
+  static const String passwordTooShort = 'Password must be at least 4 characters';
+  static const String incorrectPassword = 'Incorrect password. Please try again.';
+  static const String userNotFound = 'Technician account not found. Please verify your credentials.';
   static const String loginButton = 'Sign In';
   static const String loggingIn = 'Signing in...';
   static const String demoAccountsNotice = 'Demo Accounts:';

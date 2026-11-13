@@ -19,8 +19,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'atul@fieldjobs.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
@@ -127,7 +127,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             keyboardType: TextInputType.emailAddress,
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {
-                                return 'Email is required';
+                                return AppStrings.emailRequired;
+                              }
+                              if (!val.contains('@')) {
+                                return AppStrings.invalidEmail;
                               }
                               return null;
                             },
@@ -138,7 +141,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           CustomTextField(
                             controller: _passwordController,
                             label: AppStrings.passwordLabel,
-                            hintText: 'Enter password',
+                            hintText: AppStrings.passwordHint,
                             prefixIcon: Icons.lock_outline,
                             obscureText: _obscurePassword,
                             suffixIcon: IconButton(
@@ -156,7 +159,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {
-                                return 'Password is required';
+                                return AppStrings.passwordRequired;
+                              }
+                              if (val.trim().length < 4) {
+                                return AppStrings.passwordTooShort;
                               }
                               return null;
                             },
