@@ -209,7 +209,7 @@ class JobCard extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Work Job',
+                                  job.isUpcoming ? 'View Schedule' : 'Work Job',
                                   style: AppTextStyles.caption.copyWith(
                                     color: AppColors.primaryDark,
                                     fontWeight: FontWeight.bold,

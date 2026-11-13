@@ -143,6 +143,10 @@ class JobLocalDataSource {
     final job = await getJobById(jobId);
     if (job == null) return;
 
+    if (job.isUpcoming) {
+      throw Exception('Upcoming jobs cannot be started before their scheduled date.');
+    }
+
     final nowStr = DateTime.now().toIso8601String();
 
     await db.transaction((txn) async {
@@ -184,6 +188,10 @@ class JobLocalDataSource {
     final db = await _dbManager.database;
     final job = await getJobById(jobId);
     if (job == null) return;
+
+    if (job.isUpcoming) {
+      throw Exception('Upcoming jobs cannot be started before their scheduled date.');
+    }
 
     final nowStr = DateTime.now().toIso8601String();
 
@@ -228,6 +236,10 @@ class JobLocalDataSource {
     final job = await getJobById(jobId);
     if (job == null) return;
 
+    if (job.isUpcoming) {
+      throw Exception('Upcoming jobs cannot be started before their scheduled date.');
+    }
+
     final nowStr = DateTime.now().toIso8601String();
 
     await db.transaction((txn) async {
@@ -263,6 +275,10 @@ class JobLocalDataSource {
     final db = await _dbManager.database;
     final job = await getJobById(jobId);
     if (job == null) return false;
+
+    if (job.isUpcoming) {
+      return false; // Future jobs are read-only
+    }
 
     if (job.photos.length >= 3) {
       return false; // Limit reached

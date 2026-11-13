@@ -149,7 +149,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
       );
     }
 
-    final isReadOnly = job.isDone;
+    final isReadOnly = job.isDone || job.isUpcoming;
 
     return Scaffold(
       appBar: AppBar(
@@ -332,7 +332,47 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
             const SizedBox(height: AppDimens.space16),
 
             // Workflow Action Buttons (Travelling -> On site -> Completed)
-            if (!isReadOnly) ...[
+            if (job.isUpcoming) ...[
+              // Upcoming job lock notification card
+              Container(
+                padding: const EdgeInsets.all(AppDimens.space16),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius: BorderRadius.circular(AppDimens.radiusMedium),
+                  border: Border.all(color: AppColors.primaryLight, width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.event_available_rounded,
+                      color: AppColors.primary,
+                      size: 26,
+                    ),
+                    const SizedBox(width: AppDimens.space12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Upcoming Job • ${job.scheduledDate}',
+                            style: AppTextStyles.h3.copyWith(
+                              color: AppColors.primaryDark,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'This job is scheduled for future work. Workflow actions will unlock on ${job.scheduledDate}.',
+                            style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppDimens.space16),
+            ] else if (!isReadOnly) ...[
               _buildWorkflowActions(job),
               const SizedBox(height: AppDimens.space16),
             ] else if (job.cannotCompleteReason != null) ...[

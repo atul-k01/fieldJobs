@@ -106,7 +106,7 @@ class AuthRepository extends BaseRepository {
     await _storage.write(key: _keyUserId, value: tech.id);
     await _storage.write(key: _keyUserEmail, value: tech.email);
     await _storage.write(key: _keyUserName, value: tech.name);
-  } 
+  }
 
   Future<int> getPendingSyncCount() {
     return safeCall(

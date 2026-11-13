@@ -97,6 +97,35 @@ void main() {
       expect(todayJob.isOverdue, false);
     });
 
+    test('JobModel isUpcoming correctly detects future scheduled jobs', () {
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      final tomorrowStr = tomorrow.toIso8601String().split('T').first;
+      final todayStr = DateTime.now().toIso8601String().split('T').first;
+
+      final upcomingJob = JobModel(
+        id: 'job-future',
+        assignedTo: 'alex@fieldjobs.com',
+        customerName: 'Future Customer',
+        customerPhone: '123',
+        address: '456 St',
+        scheduledDate: tomorrowStr,
+        timeWindow: '10:00 - 12:00 PM',
+        appliance: 'Dishwasher',
+        problemDescription: 'Door latch broken',
+        status: 'assigned',
+        updatedAt: '2026-11-13T10:00:00Z',
+      );
+      expect(upcomingJob.isUpcoming, true);
+
+      // Today's job is not upcoming
+      final todayJob = upcomingJob.copyWith(scheduledDate: todayStr);
+      expect(todayJob.isUpcoming, false);
+
+      // Past job is not upcoming
+      final pastJob = upcomingJob.copyWith(scheduledDate: '2020-01-01');
+      expect(pastJob.isUpcoming, false);
+    });
+
     test('SyncQueueItem encapsulates mutation payload for durable offline queue', () {
       const queueItem = SyncQueueItem(
         id: 'q-uuid-1234',

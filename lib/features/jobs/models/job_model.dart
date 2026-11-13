@@ -59,6 +59,20 @@ class JobModel {
     }
   }
 
+  /// True if job is scheduled for a future date (tomorrow or later)
+  bool get isUpcoming {
+    if (isDone) return false;
+    try {
+      final parsed = DateTime.parse(scheduledDate);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final jobDate = DateTime(parsed.year, parsed.month, parsed.day);
+      return jobDate.isAfter(today);
+    } catch (_) {
+      return false;
+    }
+  }
+
   bool get isPendingSync => syncStatus == 'pending';
   bool get hasConflict => syncStatus == 'conflict';
 
