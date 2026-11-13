@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/network/supabase_config.dart';
+import '../../../core/utils/app_log.dart';
 import '../models/technician_model.dart';
 
 class AuthRepository {
@@ -44,6 +45,7 @@ class AuthRepository {
 
   Future<TechnicianModel> signIn(String email, String password) async {
     final cleanEmail = email.trim().toLowerCase();
+    AppLog.d('AuthRepository', 'Attempting sign in for: $cleanEmail');
 
     // Check if Supabase is connected
     if (SupabaseConfig.isInitialized) {
@@ -61,24 +63,30 @@ class AuthRepository {
             name: user.userMetadata?['name'] as String? ?? 'Technician',
           );
           await _saveSession(tech);
+          AppLog.i('AuthRepository', 'Signed in successfully via Supabase: ${tech.email}');
           return tech;
         }
-      } catch (_) {
-        // Fall back to local validation if offline
+      } catch (e) {
+        AppLog.w('AuthRepository', 'Supabase sign-in failed, falling back to local demo: $e');
       }
     }
 
     // Standard demo accounts validation (always works offline)
     final matched = demoTechnicians.firstWhere(
       (tech) => tech.email.toLowerCase() == cleanEmail,
-      orElse: () => throw Exception('Invalid technician email. Use alex@fieldjobs.com or sarah@fieldjobs.com'),
+      orElse: () {
+        AppLog.e('AuthRepository', 'Invalid email entered: $cleanEmail');
+        throw Exception('Invalid technician email. Use alex@fieldjobs.com or sarah@fieldjobs.com');
+      },
     );
 
     if (password != 'password123' && password != 'demo') {
+      AppLog.e('AuthRepository', 'Invalid password entered for: $cleanEmail');
       throw Exception('Invalid password. Demo password is password123');
     }
 
     await _saveSession(matched);
+    AppLog.i('AuthRepository', 'Signed in successfully via demo credentials: ${matched.email}');
     return matched;
   }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/tables.dart';
 import '../../../core/network/connectivity_service.dart';
+import '../../../core/utils/app_log.dart';
 import '../../jobs/data/job_local_datasource.dart';
 import '../../jobs/data/job_remote_datasource.dart';
 import '../models/sync_queue_item.dart';
@@ -93,8 +94,12 @@ class SyncEngine {
 
   /// Process the durable SQLite sync queue in FIFO order
   Future<void> processQueue() async {
-    if (_isProcessing) return;
+    if (_isProcessing) {
+      AppLog.d('SyncEngine', 'Sync already in progress, skipping duplicate cycle.');
+      return;
+    }
     _isProcessing = true;
+    AppLog.i('SyncEngine', 'Starting durable queue processing...');
     _updateState(_currentState.copyWith(isSyncing: true, lastError: null));
 
     try {
@@ -108,8 +113,11 @@ class SyncEngine {
         orderBy: '${SyncQueueColumns.createdAt} ASC',
       );
 
+      AppLog.d('SyncEngine', 'Found ${rows.length} pending mutations in queue.');
+
       for (final row in rows) {
         final item = SyncQueueItem.fromMap(row);
+        AppLog.d('SyncEngine', 'Processing mutation: ${item.actionType} for job ${item.jobId}');
 
         // Mark item in_flight
         await db.update(

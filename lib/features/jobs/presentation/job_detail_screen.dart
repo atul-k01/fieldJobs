@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimens.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/utils/app_log.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../../core/widgets/sync_badge.dart';
@@ -54,6 +55,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
   }
 
   void _saveNotes() {
+    AppLog.d('JobDetailScreen', 'Saving technician notes for ${widget.jobId}');
     ref.read(jobsProvider.notifier).saveNotes(
           widget.jobId,
           _notesController.text.trim(),
@@ -71,6 +73,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
   }
 
   void _onStatusChange(String newStatus) {
+    AppLog.i('JobDetailScreen', 'Transitioning ${widget.jobId} to $newStatus');
     ref.read(jobsProvider.notifier).updateJobStatus(widget.jobId, newStatus);
   }
 
@@ -79,6 +82,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
       context: context,
       builder: (ctx) => CannotCompleteDialog(
         onConfirm: (reason) {
+          AppLog.w('JobDetailScreen', 'Marked cannot complete: $reason');
           ref.read(jobsProvider.notifier).updateJobStatus(
                 widget.jobId,
                 'could_not_complete',
@@ -96,7 +100,13 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Checklist Incomplete'),
+          title: Row(
+            children: const [
+              Icon(Icons.warning_amber_rounded, color: AppColors.warning),
+              SizedBox(width: 8),
+              Text('Checklist Incomplete'),
+            ],
+          ),
           content: Text(
             'There are still $pendingChecklist unchecked item(s). Are you sure you want to mark this job as completed?',
           ),
@@ -106,6 +116,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
               child: const Text('Back to Checklist'),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               onPressed: () {
                 Navigator.pop(ctx);
                 _onStatusChange('completed');
@@ -126,7 +137,13 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
 
     if (job == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.jobDetails)),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(AppStrings.jobDetails),
+        ),
         body: const Center(child: Text('Job not found')),
       );
     }
@@ -135,7 +152,25 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(job.id.toUpperCase()),
+        // Explicit Prominent Back Button
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary, size: 26),
+          tooltip: 'Back to Jobs',
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              job.id.toUpperCase(),
+              style: AppTextStyles.h2.copyWith(fontSize: 18),
+            ),
+            Text(
+              '${job.customerName} • ${job.timeWindow}',
+              style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: AppDimens.space16),
@@ -195,18 +230,62 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                       children: [
                         StatusChip(status: job.status),
                         const Spacer(),
-                        Text(
-                          'Version ${job.version}',
-                          style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: Text(
+                            'Version ${job.version}',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: AppDimens.space12),
-                    Text(
-                      job.appliance,
-                      style: AppTextStyles.h2.copyWith(color: AppColors.primary),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primarySurface,
+                            borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                          ),
+                          child: const Icon(
+                            Icons.home_repair_service_rounded,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: AppDimens.space12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                job.appliance,
+                                style: AppTextStyles.h2.copyWith(
+                                  color: AppColors.primary,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Scheduled: ${job.scheduledDate} (${job.timeWindow})',
+                                style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: AppDimens.space8),
+                    const SizedBox(height: AppDimens.space12),
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(AppDimens.space12),
@@ -218,17 +297,24 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            AppStrings.problemDescription,
-                            style: AppTextStyles.caption.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textSecondary,
-                            ),
+                          Row(
+                            children: const [
+                              Icon(Icons.report_problem_outlined, size: 16, color: Color(0xFFD97706)),
+                              SizedBox(width: 6),
+                              Text(
+                                AppStrings.problemDescription,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFD97706),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Text(
                             job.problemDescription,
-                            style: AppTextStyles.bodyMedium,
+                            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
                           ),
                         ],
                       ),
@@ -280,20 +366,23 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      AppStrings.customerInfo,
-                      style: AppTextStyles.h3,
+                    Row(
+                      children: const [
+                        Icon(Icons.person_pin_circle_rounded, color: AppColors.primary, size: 20),
+                        SizedBox(width: 8),
+                        Text(AppStrings.customerInfo, style: AppTextStyles.h3),
+                      ],
                     ),
                     const Divider(height: AppDimens.space24),
                     _buildInfoRow(
                       icon: Icons.person_outline,
-                      title: 'Customer',
+                      title: 'Customer Name',
                       value: job.customerName,
                     ),
                     const SizedBox(height: AppDimens.space12),
                     _buildInfoRow(
                       icon: Icons.phone_outlined,
-                      title: 'Phone',
+                      title: 'Contact Phone',
                       value: job.customerPhone.isNotEmpty ? job.customerPhone : 'Not provided',
                     ),
                     const SizedBox(height: AppDimens.space12),
@@ -303,6 +392,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                       value: job.address,
                       trailing: IconButton(
                         icon: const Icon(Icons.copy_rounded, size: 18, color: AppColors.primary),
+                        tooltip: 'Copy Address',
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: job.address));
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -313,12 +403,6 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                           );
                         },
                       ),
-                    ),
-                    const SizedBox(height: AppDimens.space12),
-                    _buildInfoRow(
-                      icon: Icons.access_time_outlined,
-                      title: AppStrings.timeWindow,
-                      value: '${job.scheduledDate} • ${job.timeWindow}',
                     ),
                   ],
                 ),
@@ -348,9 +432,9 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: [
-                        const Icon(Icons.note_alt_outlined, color: AppColors.primary, size: 22),
-                        const SizedBox(width: AppDimens.space8),
+                      children: const [
+                        Icon(Icons.edit_note_rounded, color: AppColors.primary, size: 24),
+                        SizedBox(width: AppDimens.space8),
                         Text(AppStrings.notesTitle, style: AppTextStyles.h3),
                       ],
                     ),
@@ -407,6 +491,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
           CustomButton(
             text: AppStrings.startTravelling,
             icon: Icons.directions_car_filled_outlined,
+            backgroundColor: AppColors.primary,
             onPressed: () => _onStatusChange('travelling'),
           ),
           const SizedBox(height: AppDimens.space8),

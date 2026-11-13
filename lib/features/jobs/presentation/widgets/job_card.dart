@@ -21,134 +21,201 @@ class JobCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: AppDimens.space12),
       clipBehavior: Clip.antiAlias,
+      elevation: 1.5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusMedium),
+        side: BorderSide(
+          color: job.hasConflict
+              ? AppColors.error.withValues(alpha: 0.5)
+              : (job.isPendingSync
+                  ? AppColors.warning.withValues(alpha: 0.5)
+                  : AppColors.divider),
+          width: (job.hasConflict || job.isPendingSync) ? 1.5 : 1.0,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimens.cardPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top Row: Time Window, Status Chip, Sync Badge
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimens.space8,
-                      vertical: AppDimens.space4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
-                      borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.access_time_rounded,
-                          size: 13,
-                          color: AppColors.primaryDark,
-                        ),
-                        const SizedBox(width: AppDimens.space4),
-                        Text(
-                          job.timeWindow,
-                          style: AppTextStyles.badge.copyWith(
-                            color: AppColors.primaryDark,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  if (job.isPendingSync || job.hasConflict) ...[
-                    SyncBadge(syncStatus: job.syncStatus),
-                    const SizedBox(width: AppDimens.space8),
-                  ],
-                  StatusChip(status: job.status),
-                ],
-              ),
-              const SizedBox(height: AppDimens.space12),
-
-              // Appliance Name & Customer Name
-              Text(
-                job.appliance,
-                style: AppTextStyles.h3.copyWith(
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: AppDimens.space4),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.person_outline_rounded,
-                    size: 15,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: AppDimens.space4),
-                  Text(
-                    job.customerName,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppDimens.space8),
-
-              // Problem Description
+              // Left color indicator stripe based on status
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppDimens.space8),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Text(
-                  job.problemDescription,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                width: 5,
+                color: _getStatusStripeColor(job.status),
               ),
-              const SizedBox(height: AppDimens.space8),
 
-              // Address Row
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on_outlined,
-                    size: 15,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: AppDimens.space4),
-                  Expanded(
-                    child: Text(
-                      job.address,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
+              // Card Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimens.cardPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Top Row: Time Window, Status Chip, Sync Badge
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimens.space8,
+                              vertical: AppDimens.space4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySurface,
+                              borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.access_time_rounded,
+                                  size: 13,
+                                  color: AppColors.primaryDark,
+                                ),
+                                const SizedBox(width: AppDimens.space4),
+                                Text(
+                                  job.timeWindow,
+                                  style: AppTextStyles.badge.copyWith(
+                                    color: AppColors.primaryDark,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          if (job.isPendingSync || job.hasConflict) ...[
+                            SyncBadge(syncStatus: job.syncStatus),
+                            const SizedBox(width: AppDimens.space8),
+                          ],
+                          StatusChip(status: job.status),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                      const SizedBox(height: AppDimens.space12),
+
+                      // Appliance Name & Customer Name
+                      Text(
+                        job.appliance,
+                        style: AppTextStyles.h3.copyWith(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: AppDimens.space4),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.person_outline_rounded,
+                            size: 15,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: AppDimens.space4),
+                          Text(
+                            job.customerName,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppDimens.space8),
+
+                      // Problem Description
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(AppDimens.space8),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Text(
+                          job.problemDescription,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(height: AppDimens.space10),
+
+                      // Address Row & Action hint
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 15,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: AppDimens.space4),
+                          Expanded(
+                            child: Text(
+                              job.address,
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: AppDimens.space8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySurface,
+                              borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Work Job',
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 10,
+                                  color: AppColors.primaryDark,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    size: 20,
-                    color: AppColors.textTertiary,
-                  ),
-                ],
+                ),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Color _getStatusStripeColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'on_site':
+        return const Color(0xFFD97706);
+      case 'travelling':
+        return AppColors.primary;
+      case 'completed':
+        return const Color(0xFF059669);
+      case 'could_not_complete':
+      case 'cancelled':
+        return AppColors.error;
+      case 'assigned':
+      default:
+        return AppColors.border;
+    }
   }
 }

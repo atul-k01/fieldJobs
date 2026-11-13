@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimens.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/utils/app_log.dart';
 import '../../../core/widgets/offline_banner.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../sync/providers/sync_provider.dart';
@@ -36,6 +37,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
   }
 
   Future<void> _handleSignOut() async {
+    AppLog.d('JobsListScreen', 'User initiated sign out check');
     final pendingCount = await ref.read(authStateProvider.notifier).getPendingSyncCount();
 
     if (!mounted) return;
@@ -64,6 +66,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
               onPressed: () async {
                 Navigator.pop(ctx);
+                AppLog.w('JobsListScreen', 'User confirmed sign out with pending changes');
                 await ref.read(authStateProvider.notifier).signOut();
               },
               child: const Text(AppStrings.proceedSignOut),
@@ -87,6 +90,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               onPressed: () async {
                 Navigator.pop(ctx);
+                AppLog.i('JobsListScreen', 'User confirmed safe sign out');
                 await ref.read(authStateProvider.notifier).signOut();
               },
               child: const Text(AppStrings.signOut),
@@ -110,18 +114,61 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Text(
-              AppStrings.myJobs,
-              style: AppTextStyles.h2,
-            ),
-            if (user != null)
-              Text(
-                '${user.name} • ${user.email}',
-                style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.primarySurface,
+              child: Text(
+                user != null && user.name.isNotEmpty ? user.name[0].toUpperCase() : 'T',
+                style: const TextStyle(
+                  color: AppColors.primaryDark,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
+            ),
+            const SizedBox(width: AppDimens.space12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user?.name ?? AppStrings.myJobs,
+                    style: AppTextStyles.h3.copyWith(fontSize: 16),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isOnline ? AppColors.success : AppColors.textTertiary,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        isOnline ? 'Online' : 'Offline',
+                        style: AppTextStyles.caption.copyWith(
+                          fontSize: 11,
+                          color: isOnline ? AppColors.success : AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Text(' • ', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
+                      Text(
+                        user?.email ?? '',
+                        style: AppTextStyles.caption.copyWith(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         actions: [
@@ -131,56 +178,62 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
             onPressed: _handleSignOut,
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(AppStrings.todayTab),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${todayJobs.length}',
-                      style: AppTextStyles.badge.copyWith(
-                        color: AppColors.primaryDark,
-                        fontSize: 10,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            color: AppColors.surface,
+            child: TabBar(
+              controller: _tabController,
+              tabs: [
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(AppStrings.todayTab),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${todayJobs.length}',
+                          style: AppTextStyles.badge.copyWith(
+                            color: AppColors.primaryDark,
+                            fontSize: 11,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(AppStrings.upcomingTab),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.divider,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${upcomingJobs.length}',
-                      style: AppTextStyles.badge.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
+                ),
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(AppStrings.upcomingTab),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.divider,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${upcomingJobs.length}',
+                          style: AppTextStyles.badge.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       body: Column(
@@ -191,6 +244,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
             pendingCount: syncStatus?.pendingCount ?? 0,
             isSyncing: syncStatus?.isSyncing ?? false,
             onSyncPressed: () {
+              AppLog.d('JobsListScreen', 'Manual sync triggered by technician');
               ref.read(syncEngineProvider).processQueue();
             },
           ),
@@ -274,6 +328,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
           return JobCard(
             job: job,
             onTap: () {
+              AppLog.d('JobsListScreen', 'Navigating to details for job ${job.id}');
               Navigator.push(
                 context,
                 MaterialPageRoute(
