@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/database/app_database.dart';
@@ -48,6 +49,39 @@ class JobLocalDataSource {
         }
         await batch.commit(noResult: true);
       });
+    } else {
+      // Ensure existing seeded database has overdue jobs visible for demo
+      final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final overdueResult = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM ${DbTables.jobs} WHERE ${JobColumns.assignedTo} = ? AND ${JobColumns.scheduledDate} < ? AND ${JobColumns.status} NOT IN (?, ?, ?)',
+        [technicianEmail.toLowerCase(), todayStr, 'completed', 'could_not_complete', 'cancelled'],
+      );
+      final overdueCount = Sqflite.firstIntValue(overdueResult) ?? 0;
+
+      if (overdueCount == 0) {
+        final yesterdayStr = DateFormat('yyyy-MM-dd').format(
+          DateTime.now().subtract(const Duration(days: 1)),
+        );
+        // Find up to 2 assigned jobs and move their scheduled_date to yesterday
+        final candidateJobs = await db.query(
+          DbTables.jobs,
+          columns: [JobColumns.id],
+          where: '${JobColumns.assignedTo} = ? AND ${JobColumns.status} = ?',
+          whereArgs: [technicianEmail.toLowerCase(), 'assigned'],
+          limit: 2,
+        );
+
+        if (candidateJobs.isNotEmpty) {
+          for (final jobRow in candidateJobs) {
+            await db.update(
+              DbTables.jobs,
+              {JobColumns.scheduledDate: yesterdayStr},
+              where: '${JobColumns.id} = ?',
+              whereArgs: [jobRow[JobColumns.id]],
+            );
+          }
+        }
+      }
     }
   }
 

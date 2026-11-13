@@ -312,6 +312,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
                         jobs: todayJobs,
                         emptyMessage: AppStrings.noJobsToday,
                         isToday: true,
+                        overdueCount: overdueCount,
                       ),
 
                       // Upcoming Jobs Tab (Future scheduled)
@@ -339,6 +340,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
     required List<JobModel> jobs,
     required String emptyMessage,
     required bool isToday,
+    int overdueCount = 0,
   }) {
     if (jobs.isEmpty) {
       return RefreshIndicator(
@@ -373,6 +375,8 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
       );
     }
 
+    final hasOverdueBanner = isToday && overdueCount > 0;
+
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(jobsProvider.notifier).loadJobs();
@@ -380,8 +384,21 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(AppDimens.space16),
-        itemCount: jobs.length,
+        itemCount: jobs.length + (hasOverdueBanner ? 1 : 0),
         itemBuilder: (context, index) {
+          if (hasOverdueBanner) {
+            if (index == 0) {
+              return _buildOverdueBanner(overdueCount);
+            }
+            final job = jobs[index - 1];
+            return JobCard(
+              job: job,
+              onTap: () {
+                AppNavigator.goToJobDetail(context, job.id);
+              },
+            );
+          }
+
           final job = jobs[index];
           return JobCard(
             job: job,
@@ -390,6 +407,63 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildOverdueBanner(int count) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppDimens.space12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.space12,
+        vertical: AppDimens.space10,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(AppDimens.radiusMedium),
+        border: Border.all(color: const Color(0xFFFCA5A5), width: 1.0),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFEE2E2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.alarm_on_rounded,
+              color: Color(0xFFDC2626),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: AppDimens.space10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  count == 1
+                      ? '1 Overdue Job Needs Attention'
+                      : '$count Overdue Jobs Need Attention',
+                  style: const TextStyle(
+                    color: Color(0xFF991B1B),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Scheduled prior to today and pending completion. Prioritized at top.',
+                  style: TextStyle(
+                    color: Color(0xFFB91C1C),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

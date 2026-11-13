@@ -222,6 +222,47 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                 ),
               ),
 
+            // Overdue Notice Banner if scheduled before today and unfinished
+            if (job.isOverdue)
+              Container(
+                margin: const EdgeInsets.only(bottom: AppDimens.space16),
+                padding: const EdgeInsets.all(AppDimens.space12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusMedium),
+                  border: Border.all(color: const Color(0xFFFCA5A5), width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.alarm_on_rounded, color: Color(0xFFDC2626), size: 24),
+                    const SizedBox(width: AppDimens.space12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Overdue Job - High Priority',
+                            style: TextStyle(
+                              color: Color(0xFF991B1B),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Scheduled for ${job.scheduledDate}. Action required: complete or update status promptly.',
+                            style: const TextStyle(
+                              color: Color(0xFFB91C1C),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             // Top Status & Header Card
             Card(
               child: Padding(
@@ -235,7 +276,38 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                       spacing: AppDimens.space8,
                       runSpacing: AppDimens.space6,
                       children: [
-                        StatusChip(status: job.status),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            StatusChip(status: job.status),
+                            if (job.isOverdue) ...[
+                              const SizedBox(width: AppDimens.space8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEE2E2),
+                                  borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                                  border: Border.all(color: const Color(0xFFDC2626), width: 1.0),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.alarm_on_rounded, size: 12, color: Color(0xFFDC2626)),
+                                    SizedBox(width: 3),
+                                    Text(
+                                      'OVERDUE',
+                                      style: TextStyle(
+                                        color: Color(0xFFDC2626),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(

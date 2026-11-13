@@ -97,11 +97,13 @@ class DemoDataSeeder {
 
     for (final techEmail in techs) {
       // 100 jobs for each technician
-      // Spread across 14 days (approx 7-8 jobs per day)
-      for (int dayOffset = 0; dayOffset < 14; dayOffset++) {
+      // Spread across 14 days (1 day overdue, today, and 12 upcoming days)
+      for (int dayOffset = -1; dayOffset < 13; dayOffset++) {
         final targetDate = now.add(Duration(days: dayOffset));
         final dateStr = dateFormat.format(targetDate);
-        final jobsForDay = (dayOffset == 0) ? 6 : 7; // 6 today, 7 on upcoming days
+        final jobsForDay = (dayOffset == -1)
+            ? 2 // 2 overdue jobs from yesterday
+            : (dayOffset == 0 ? 5 : 7); // 5 today, 7 on upcoming days
 
         for (int i = 0; i < jobsForDay; i++) {
           if (jobs.where((j) => j.assignedTo == techEmail).length >= 100) break;
@@ -115,7 +117,7 @@ class DemoDataSeeder {
           final street = _streets[(jobCounter + i) % _streets.length];
           final timeWindow = _timeWindows[i % _timeWindows.length];
 
-          // Status distribution: Today's first jobs can be in progress, rest assigned
+          // Status distribution: Overdue jobs are assigned and uncompleted from yesterday
           String initialStatus = 'assigned';
           if (dayOffset == 0 && i == 0) {
             initialStatus = 'on_site';

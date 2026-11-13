@@ -65,22 +65,32 @@ class JobCard extends StatelessWidget {
                               vertical: AppDimens.space4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primarySurface,
+                              color: job.isOverdue
+                                  ? const Color(0xFFFEE2E2)
+                                  : AppColors.primarySurface,
                               borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
-                                  Icons.access_time_rounded,
+                                Icon(
+                                  job.isOverdue
+                                      ? Icons.event_busy_rounded
+                                      : Icons.access_time_rounded,
                                   size: 13,
-                                  color: AppColors.primaryDark,
+                                  color: job.isOverdue
+                                      ? const Color(0xFFDC2626)
+                                      : AppColors.primaryDark,
                                 ),
                                 const SizedBox(width: AppDimens.space4),
                                 Text(
-                                  job.timeWindow,
+                                  job.isOverdue
+                                      ? '${job.scheduledDate} • ${job.timeWindow}'
+                                      : job.timeWindow,
                                   style: AppTextStyles.badge.copyWith(
-                                    color: AppColors.primaryDark,
+                                    color: job.isOverdue
+                                        ? const Color(0xFFDC2626)
+                                        : AppColors.primaryDark,
                                     fontSize: 11,
                                   ),
                                 ),
