@@ -75,39 +75,61 @@ DECLARE
     job_id_counter INT := 1;
     curr_job_id TEXT;
     appliances TEXT[] := ARRAY[
-        'Samsung French Door Refrigerator',
-        'Bosch 800 Series Dishwasher',
-        'Whirlpool Front Load Washer',
-        'LG Smart Electric Dryer',
-        'GE Profile Induction Range',
-        'KitchenAid Built-In Microwave',
-        'Miele Commercial Washing Machine',
-        'Frigidaire Upright Freezer'
+        'Voltas 1.5 Ton 5-Star Inverter Split AC',
+        'LG 340L Double Door Smart Inverter Refrigerator',
+        'Samsung 7.5 Kg Fully-Automatic Front Load Washer',
+        'IFB 6 Kg Senator Front Load Washing Machine',
+        'Whirlpool 265L Frost-Free Double Door Refrigerator',
+        'Havells 25L Storage Water Heater Geyser',
+        'Bosch 14-Place Settings Dishwasher',
+        'Godrej 190L Direct-Cool Single Door Refrigerator',
+        'Panasonic 27L Convection Microwave Oven',
+        'Daikin 1.8 Ton 3-Star Inverter Split AC'
     ];
     problems TEXT[] := ARRAY[
-        'Not cooling properly, clicking noise from compressor',
-        'Water not draining, error code E24 on display',
-        'Loud vibration during spin cycle, burning rubber smell',
-        'Takes 3 cycles to dry clothes, lint trap clean',
-        'Left front burner not heating, touch control unresponsive',
-        'Door latch jammed, turntable motor spinning slowly'
+        'AC not cooling properly, outdoor fan motor tripping MCB',
+        'Refrigerator bottom freezer leaking water, temperature fluctuating',
+        'Washing machine drum vibrating loudly during high-speed spin cycle',
+        'Microwave turntable rotating but heating element completely dead',
+        'Dishwasher error code E24 drainage pump jammed with debris',
+        'Geyser thermostat not auto-cutting, excessive steam buildup',
+        'Refrigerator compressor clicking repeatedly every 2 minutes',
+        'Washing machine water inlet solenoid valve stuck open, overflowing'
     ];
     customers TEXT[] := ARRAY[
-        'David Miller', 'Emma Watson', 'James Anderson', 'Sophia Taylor',
-        'Michael Brown', 'Olivia Davis', 'William Wilson', 'Emily Evans'
+        'Gurpreet Singh', 'Simran Kaur', 'Amit Sharma', 'Harpreet Sandhu',
+        'Priya Sharma', 'Rohan Verma', 'Manpreet Kaur', 'Vikram Malhotra',
+        'Neha Gupta', 'Rajesh Kumar', 'Jaspreet Singh', 'Anjali Mehra'
     ];
     streets TEXT[] := ARRAY[
-        '142 Elm Street, Oxford',
-        '78 Meadow Lane, Cambridge',
-        '12 Kingfisher Court, Bristol',
-        '59 Queen Street, Reading',
-        '33 Victoria Road, Manchester'
+        -- Chandigarh
+        'House # 1204, Sector 35-B, Chandigarh',
+        'SCO 42, Sector 17-C, Chandigarh',
+        'House # 418, Sector 8-A, Chandigarh',
+        'Flat 302, Sector 43-B, Chandigarh',
+        'Booth 55, Sector 22-D, Chandigarh',
+        'Modern Housing Complex, Mani Majra, Chandigarh',
+        -- Mohali
+        'House # 245, Phase 7, Mohali',
+        'SCF 18, Phase 3B2, Mohali',
+        'House # 1420, Sector 70, Mohali',
+        'Flat 401, Homeland Heights, Sector 70, Mohali',
+        'Plot 512, JLPL Industrial Area, Sector 82, Mohali',
+        'Block C, Aerocity, Mohali',
+        -- Panchkula
+        'House # 514, Sector 20, Panchkula',
+        'SCO 88, Sector 14, Panchkula',
+        'House # 128, Sector 7, Panchkula',
+        'House # 95, MDC Sector 4, Panchkula',
+        'House # 732, Sector 21, Panchkula'
     ];
     windows TEXT[] := ARRAY['08:00 - 10:00 AM', '10:00 - 12:00 PM', '12:30 - 02:30 PM', '02:30 - 04:30 PM'];
 BEGIN
     FOREACH tech_email IN ARRAY tech_emails LOOP
-        FOR day_offset IN 0..13 LOOP
-            FOR job_idx IN 1..7 LOOP
+        -- Generate 100 jobs per technician: 2 overdue (day -1), 5 today (day 0), rest upcoming (day 1..12)
+        FOR day_offset IN -1..12 LOOP
+            FOR job_idx IN 1..CASE WHEN day_offset = -1 THEN 2 WHEN day_offset = 0 THEN 5 ELSE 7 END LOOP
+            LOOP
                 curr_job_id := 'job-' || LPAD(job_id_counter::text, 4, '0');
                 
                 INSERT INTO public.jobs (
@@ -118,8 +140,8 @@ BEGIN
                     curr_job_id,
                     tech_email,
                     customers[(job_id_counter % array_length(customers, 1)) + 1],
-                    '+44 7700 900' || (100 + job_id_counter)::text,
-                    streets[(job_id_counter % array_length(streets, 1)) + 1] || ', Flat ' || job_idx::text,
+                    '+91 98140 ' || LPAD((10000 + job_id_counter)::text, 5, '0'),
+                    streets[(job_id_counter % array_length(streets, 1)) + 1],
                     (CURRENT_DATE + (day_offset || ' days')::interval)::date,
                     windows[(job_idx % array_length(windows, 1)) + 1],
                     appliances[(job_id_counter % array_length(appliances, 1)) + 1],
