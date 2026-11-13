@@ -50,36 +50,73 @@ class JobLocalDataSource {
         await batch.commit(noResult: true);
       });
     } else {
-      // Ensure existing seeded database has overdue jobs visible for demo
+      // Ensure existing seeded database has both Overdue jobs and Today's jobs visible for demo testing
       final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final yesterdayStr = DateFormat('yyyy-MM-dd').format(
+        DateTime.now().subtract(const Duration(days: 1)),
+      );
+
+      // 1. Ensure at least 2 Overdue jobs from past
       final overdueResult = await db.rawQuery(
         'SELECT COUNT(*) as count FROM ${DbTables.jobs} WHERE ${JobColumns.assignedTo} = ? AND ${JobColumns.scheduledDate} < ? AND ${JobColumns.status} NOT IN (?, ?, ?)',
         [technicianEmail.toLowerCase(), todayStr, 'completed', 'could_not_complete', 'cancelled'],
       );
       final overdueCount = Sqflite.firstIntValue(overdueResult) ?? 0;
 
-      if (overdueCount == 0) {
-        final yesterdayStr = DateFormat('yyyy-MM-dd').format(
-          DateTime.now().subtract(const Duration(days: 1)),
-        );
-        // Find up to 2 assigned jobs and move their scheduled_date to yesterday
-        final candidateJobs = await db.query(
+      if (overdueCount < 2) {
+        final needed = 2 - overdueCount;
+        final candidateFutureJobs = await db.query(
           DbTables.jobs,
           columns: [JobColumns.id],
-          where: '${JobColumns.assignedTo} = ? AND ${JobColumns.status} = ?',
-          whereArgs: [technicianEmail.toLowerCase(), 'assigned'],
-          limit: 2,
+          where: '${JobColumns.assignedTo} = ? AND ${JobColumns.scheduledDate} > ? AND ${JobColumns.status} = ?',
+          whereArgs: [technicianEmail.toLowerCase(), todayStr, 'assigned'],
+          limit: needed,
         );
 
-        if (candidateJobs.isNotEmpty) {
-          for (final jobRow in candidateJobs) {
-            await db.update(
-              DbTables.jobs,
-              {JobColumns.scheduledDate: yesterdayStr},
-              where: '${JobColumns.id} = ?',
-              whereArgs: [jobRow[JobColumns.id]],
-            );
+        for (final jobRow in candidateFutureJobs) {
+          await db.update(
+            DbTables.jobs,
+            {JobColumns.scheduledDate: yesterdayStr},
+            where: '${JobColumns.id} = ?',
+            whereArgs: [jobRow[JobColumns.id]],
+          );
+        }
+      }
+
+      // 2. Ensure at least 5 active/unfinished jobs for Today
+      final activeTodayResult = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM ${DbTables.jobs} WHERE ${JobColumns.assignedTo} = ? AND ${JobColumns.scheduledDate} = ? AND ${JobColumns.status} NOT IN (?, ?, ?)',
+        [technicianEmail.toLowerCase(), todayStr, 'completed', 'could_not_complete', 'cancelled'],
+      );
+      final activeTodayCount = Sqflite.firstIntValue(activeTodayResult) ?? 0;
+
+      if (activeTodayCount < 5) {
+        final needed = 5 - activeTodayCount;
+        final candidateFutureJobs = await db.query(
+          DbTables.jobs,
+          columns: [JobColumns.id],
+          where: '${JobColumns.assignedTo} = ? AND ${JobColumns.scheduledDate} > ? AND ${JobColumns.status} = ?',
+          whereArgs: [technicianEmail.toLowerCase(), todayStr, 'assigned'],
+          limit: needed,
+        );
+
+        for (int i = 0; i < candidateFutureJobs.length; i++) {
+          final id = candidateFutureJobs[i][JobColumns.id];
+          String status = 'assigned';
+          if (activeTodayCount == 0 && i == 0) {
+            status = 'on_site';
+          } else if (activeTodayCount == 0 && i == 1) {
+            status = 'travelling';
           }
+          await db.update(
+            DbTables.jobs,
+            {
+              JobColumns.scheduledDate: todayStr,
+              JobColumns.status: status,
+            },
+            where: '${JobColumns.id} = ?',
+            whereArgs: [id],
+          );
         }
       }
     }

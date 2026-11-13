@@ -72,7 +72,11 @@ class JobsState {
     return list;
   }
 
-  int get overdueCount => todayJobs.where((j) => j.isOverdue).length;
+  List<JobModel> get overdueJobs => todayJobs.where((j) => j.isOverdue).toList();
+
+  List<JobModel> get activeTodayJobs => todayJobs.where((j) => !j.isOverdue).toList();
+
+  int get overdueCount => overdueJobs.length;
 
   int _statusPriority(String status) {
     switch (status) {

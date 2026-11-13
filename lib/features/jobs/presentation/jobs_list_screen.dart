@@ -307,22 +307,20 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
                 : TabBarView(
                     controller: _tabController,
                     children: [
-                      // Today's Jobs Tab (Includes past Overdue jobs at the top)
-                      _buildJobList(
-                        jobs: todayJobs,
-                        emptyMessage: AppStrings.noJobsToday,
-                        isToday: true,
-                        overdueCount: overdueCount,
+                      // Tab 1: Today's Jobs Tab (Shows Overdue section + Today's section together)
+                      _buildTodayJobList(
+                        overdueJobs: jobsState.overdueJobs,
+                        todayJobs: jobsState.activeTodayJobs,
                       ),
 
-                      // Upcoming Jobs Tab (Future scheduled)
+                      // Tab 2: Upcoming Jobs Tab (Future scheduled)
                       _buildJobList(
                         jobs: upcomingJobs,
                         emptyMessage: AppStrings.noUpcomingJobs,
                         isToday: false,
                       ),
 
-                      // History / Completed Tab (All completed past & present jobs)
+                      // Tab 3: History / Completed Tab (All completed past & present jobs)
                       _buildJobList(
                         jobs: historyJobs,
                         emptyMessage: AppStrings.noHistoryJobs,
@@ -336,11 +334,161 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
     );
   }
 
+  /// Dedicated layout for Today's Tab showing both Overdue Jobs and Today's Active Schedule
+  Widget _buildTodayJobList({
+    required List<JobModel> overdueJobs,
+    required List<JobModel> todayJobs,
+  }) {
+    if (overdueJobs.isEmpty && todayJobs.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: () => ref.read(jobsProvider.notifier).loadJobs(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+            Center(
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.event_available_outlined,
+                    size: 64,
+                    color: AppColors.textTertiary.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: AppDimens.space16),
+                  Text(
+                    AppStrings.noJobsToday,
+                    style: AppTextStyles.h3.copyWith(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: AppDimens.space8),
+                  Text(
+                    AppStrings.pullToRefresh,
+                    style: AppTextStyles.caption,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(jobsProvider.notifier).loadJobs();
+        await ref.read(syncEngineProvider).processQueue();
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(AppDimens.space16),
+        children: [
+          // 1. Overdue Section (Missed/Incomplete past jobs prioritized at top)
+          if (overdueJobs.isNotEmpty) ...[
+            _buildOverdueBanner(overdueJobs.length),
+            _buildSectionHeader(
+              title: 'OVERDUE JOBS',
+              subtitle: 'Action Required',
+              icon: Icons.alarm_on_rounded,
+              color: const Color(0xFFDC2626),
+              badgeCount: overdueJobs.length,
+              badgeBg: const Color(0xFFFEE2E2),
+              badgeTextColor: const Color(0xFFDC2626),
+            ),
+            const SizedBox(height: AppDimens.space8),
+            ...overdueJobs.map(
+              (job) => JobCard(
+                job: job,
+                onTap: () => AppNavigator.goToJobDetail(context, job.id),
+              ),
+            ),
+            const SizedBox(height: AppDimens.space16),
+          ],
+
+          // 2. Today's Active Schedule Section
+          if (todayJobs.isNotEmpty) ...[
+            _buildSectionHeader(
+              title: "TODAY'S SCHEDULE",
+              subtitle: 'Active Jobs',
+              icon: Icons.calendar_today_rounded,
+              color: AppColors.primaryDark,
+              badgeCount: todayJobs.length,
+              badgeBg: AppColors.primarySurface,
+              badgeTextColor: AppColors.primaryDark,
+            ),
+            const SizedBox(height: AppDimens.space8),
+            ...todayJobs.map(
+              (job) => JobCard(
+                job: job,
+                onTap: () => AppNavigator.goToJobDetail(context, job.id),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required int badgeCount,
+    required Color badgeBg,
+    required Color badgeTextColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Row(
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '• $subtitle',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: badgeBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '$badgeCount',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: badgeTextColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildJobList({
     required List<JobModel> jobs,
     required String emptyMessage,
     required bool isToday,
-    int overdueCount = 0,
   }) {
     if (jobs.isEmpty) {
       return RefreshIndicator(
@@ -375,8 +523,6 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
       );
     }
 
-    final hasOverdueBanner = isToday && overdueCount > 0;
-
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(jobsProvider.notifier).loadJobs();
@@ -384,21 +530,8 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(AppDimens.space16),
-        itemCount: jobs.length + (hasOverdueBanner ? 1 : 0),
+        itemCount: jobs.length,
         itemBuilder: (context, index) {
-          if (hasOverdueBanner) {
-            if (index == 0) {
-              return _buildOverdueBanner(overdueCount);
-            }
-            final job = jobs[index - 1];
-            return JobCard(
-              job: job,
-              onTap: () {
-                AppNavigator.goToJobDetail(context, job.id);
-              },
-            );
-          }
-
           final job = jobs[index];
           return JobCard(
             job: job,
