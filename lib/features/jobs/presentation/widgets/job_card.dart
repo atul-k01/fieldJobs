@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimens.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/sync_badge.dart';
@@ -116,7 +117,7 @@ class JobCard extends StatelessWidget {
                                       Icon(Icons.alarm_on_rounded, size: 12, color: Color(0xFFDC2626)),
                                       SizedBox(width: 3),
                                       Text(
-                                        'OVERDUE',
+                                        AppStrings.overdueBadge,
                                         style: TextStyle(
                                           color: Color(0xFFDC2626),
                                           fontSize: 10,
@@ -219,7 +220,7 @@ class JobCard extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  job.isUpcoming ? 'View Schedule' : 'Work Job',
+                                  job.isUpcoming ? AppStrings.viewSchedule : AppStrings.workJob,
                                   style: AppTextStyles.caption.copyWith(
                                     color: AppColors.primaryDark,
                                     fontWeight: FontWeight.bold,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_dimens.dart';
+import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 
 /// Professional, reusable Sign Out Confirmation Dialog
@@ -79,7 +80,7 @@ class _SignOutDialogState extends State<SignOutDialog> {
 
             // Dialog Title
             Text(
-              hasUnsynced ? 'Unsynced Changes Warning' : 'Sign Out',
+              hasUnsynced ? AppStrings.unsyncedWarningTitle : AppStrings.signOut,
               style: AppTextStyles.h2.copyWith(fontSize: 18),
               textAlign: TextAlign.center,
             ),
@@ -97,7 +98,7 @@ class _SignOutDialogState extends State<SignOutDialog> {
                 child: Column(
                   children: [
                     Text(
-                      'You have ${widget.pendingSyncCount} unsynced change${widget.pendingSyncCount > 1 ? "s" : ""}.',
+                      'You have ${widget.pendingSyncCount} ${AppStrings.unsyncedChanges}.',
                       style: const TextStyle(
                         color: Color(0xFF92400E),
                         fontWeight: FontWeight.bold,
@@ -107,7 +108,7 @@ class _SignOutDialogState extends State<SignOutDialog> {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Signing out clears local device storage. These changes will be permanently lost unless you reconnect and sync first.',
+                      AppStrings.unsyncedWarningMsg,
                       style: TextStyle(
                         color: Color(0xFFB45309),
                         fontSize: 12,
@@ -120,7 +121,7 @@ class _SignOutDialogState extends State<SignOutDialog> {
               ),
             ] else ...[
               Text(
-                'Are you sure you want to sign out? Your session on this device will end safely.',
+                AppStrings.signOutConfirmMsg,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textSecondary,
                   height: 1.4,
@@ -147,7 +148,7 @@ class _SignOutDialogState extends State<SignOutDialog> {
                       ),
                     ),
                     child: const Text(
-                      'Cancel',
+                      AppStrings.cancel,
                       style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                     ),
                   ),
@@ -177,7 +178,7 @@ class _SignOutDialogState extends State<SignOutDialog> {
                             ),
                           )
                         : Text(
-                            hasUnsynced ? 'Sign Out Anyway' : 'Sign Out',
+                            hasUnsynced ? AppStrings.proceedSignOut : AppStrings.signOut,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                   ),

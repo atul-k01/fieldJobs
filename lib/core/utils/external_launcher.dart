@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_dimens.dart';
+import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 import 'app_log.dart';
+import 'app_snackbar.dart';
 
 /// Centralized utility for opening phone dialer and external maps (Apple Maps / Google Maps)
 class ExternalLauncher {
@@ -15,7 +17,7 @@ class ExternalLauncher {
   static Future<void> makePhoneCall(BuildContext context, String phoneNumber) async {
     final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
     if (cleanNumber.isEmpty) {
-      _showError(context, 'No valid phone number provided.');
+      AppSnackBar.showError(context, AppStrings.noValidPhoneError);
       return;
     }
 
@@ -28,13 +30,13 @@ class ExternalLauncher {
       } else {
         AppLog.w('ExternalLauncher', 'Cannot launch tel URI: $uri');
         if (context.mounted) {
-          _showError(context, 'Could not launch phone dialer on this device.');
+          AppSnackBar.showError(context, AppStrings.dialerLaunchError);
         }
       }
     } catch (e) {
       AppLog.e('ExternalLauncher', 'Failed to launch phone dialer: $e');
       if (context.mounted) {
-        _showError(context, 'Error launching phone dialer: $e');
+        AppSnackBar.showError(context, '${AppStrings.dialerLaunchError} ($e)');
       }
     }
   }
@@ -44,7 +46,7 @@ class ExternalLauncher {
   /// - On Android / Other: Launches Google Maps directly
   static Future<void> openMapAddress(BuildContext context, String address) async {
     if (address.trim().isEmpty) {
-      _showError(context, 'No address available for navigation.');
+      AppSnackBar.showError(context, AppStrings.noAddressError);
       return;
     }
 
@@ -89,7 +91,7 @@ class ExternalLauncher {
                   const Icon(Icons.navigation_rounded, color: AppColors.primary, size: 22),
                   const SizedBox(width: AppDimens.space10),
                   Text(
-                    'Open Address in Maps',
+                    AppStrings.openAddressInMaps,
                     style: AppTextStyles.h3.copyWith(fontSize: 16),
                   ),
                 ],
@@ -121,10 +123,10 @@ class ExternalLauncher {
                   child: const Icon(CupertinoIcons.map_fill, color: Color(0xFF1E293B), size: 22),
                 ),
                 title: const Text(
-                  'Apple Maps',
+                  AppStrings.appleMaps,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
-                subtitle: const Text('Default iOS Navigation', style: TextStyle(fontSize: 12)),
+                subtitle: const Text(AppStrings.appleMapsDesc, style: TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textTertiary),
                 onTap: () async {
                   Navigator.pop(ctx);
@@ -148,10 +150,10 @@ class ExternalLauncher {
                   child: const Icon(Icons.location_on_rounded, color: Color(0xFF0284C7), size: 22),
                 ),
                 title: const Text(
-                  'Google Maps',
+                  AppStrings.googleMaps,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
-                subtitle: const Text('Google Navigation & Traffic', style: TextStyle(fontSize: 12)),
+                subtitle: const Text(AppStrings.googleMapsDesc, style: TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textTertiary),
                 onTap: () async {
                   Navigator.pop(ctx);
@@ -173,10 +175,14 @@ class ExternalLauncher {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        if (context.mounted) _showError(context, 'Could not open Apple Maps.');
+        if (context.mounted) {
+          AppSnackBar.showError(context, AppStrings.appleMapsError);
+        }
       }
     } catch (e) {
-      if (context.mounted) _showError(context, 'Error opening Apple Maps: $e');
+      if (context.mounted) {
+        AppSnackBar.showError(context, '${AppStrings.appleMapsError}: $e');
+      }
     }
   }
 
@@ -192,10 +198,14 @@ class ExternalLauncher {
       } else if (await canLaunchUrl(webUri)) {
         await launchUrl(webUri, mode: LaunchMode.externalApplication);
       } else {
-        if (context.mounted) _showError(context, 'Could not open Google Maps.');
+        if (context.mounted) {
+          AppSnackBar.showError(context, AppStrings.googleMapsError);
+        }
       }
     } catch (e) {
-      if (context.mounted) _showError(context, 'Error opening Google Maps: $e');
+      if (context.mounted) {
+        AppSnackBar.showError(context, '${AppStrings.googleMapsError}: $e');
+      }
     }
   }
 
@@ -210,20 +220,14 @@ class ExternalLauncher {
       } else if (await canLaunchUrl(webUri)) {
         await launchUrl(webUri, mode: LaunchMode.externalApplication);
       } else {
-        if (context.mounted) _showError(context, 'Could not open Google Maps on this device.');
+        if (context.mounted) {
+          AppSnackBar.showError(context, AppStrings.googleMapsError);
+        }
       }
     } catch (e) {
-      if (context.mounted) _showError(context, 'Error opening maps: $e');
+      if (context.mounted) {
+        AppSnackBar.showError(context, '${AppStrings.googleMapsError}: $e');
+      }
     }
-  }
-
-  static void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 }

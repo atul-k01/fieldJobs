@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/utils/app_snackbar.dart';
 import '../../models/job_photo_model.dart';
 
 class PhotosWidget extends StatelessWidget {
@@ -34,24 +35,14 @@ class PhotosWidget extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to pick image: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppSnackBar.showError(context, '${AppStrings.photoAttachError}: $e');
       }
     }
   }
 
   void _showPickerModal(BuildContext context) {
     if (photos.length >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStrings.photoLimitReached),
-          backgroundColor: AppColors.warning,
-        ),
-      );
+      AppSnackBar.showWarning(context, AppStrings.photoLimitReached);
       return;
     }
 

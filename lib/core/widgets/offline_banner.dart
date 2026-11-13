@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_dimens.dart';
+import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 
 class OfflineBanner extends StatelessWidget {
@@ -82,7 +83,7 @@ class OfflineBanner extends StatelessWidget {
                         ),
                       )
                     : const Text(
-                        'Sync Now',
+                        AppStrings.syncNow,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

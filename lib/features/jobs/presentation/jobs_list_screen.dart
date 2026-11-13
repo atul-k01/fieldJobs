@@ -103,7 +103,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        isOnline ? 'Online' : 'Offline',
+                        isOnline ? AppStrings.online : AppStrings.offline,
                         style: AppTextStyles.caption.copyWith(
                           fontSize: 11,
                           color: isOnline ? AppColors.success : AppColors.textSecondary,
@@ -336,8 +336,8 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
           if (overdueJobs.isNotEmpty) ...[
             _buildOverdueBanner(overdueJobs.length),
             _buildSectionHeader(
-              title: 'OVERDUE JOBS',
-              subtitle: 'Action Required',
+              title: AppStrings.overdueJobsHeader,
+              subtitle: AppStrings.actionRequired,
               icon: Icons.alarm_on_rounded,
               color: const Color(0xFFDC2626),
               badgeCount: overdueJobs.length,
@@ -357,8 +357,8 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
           // 2. Today's Active Schedule Section
           if (todayJobs.isNotEmpty) ...[
             _buildSectionHeader(
-              title: "TODAY'S SCHEDULE",
-              subtitle: 'Active Jobs',
+              title: AppStrings.todayScheduleHeader,
+              subtitle: AppStrings.activeJobs,
               icon: Icons.calendar_today_rounded,
               color: AppColors.primaryDark,
               badgeCount: todayJobs.length,
@@ -529,8 +529,8 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
               children: [
                 Text(
                   count == 1
-                      ? '1 Overdue Job Needs Attention'
-                      : '$count Overdue Jobs Need Attention',
+                      ? AppStrings.overdueAttentionSingle
+                      : '$count ${AppStrings.overdueAttentionPlural}',
                   style: const TextStyle(
                     color: Color(0xFF991B1B),
                     fontWeight: FontWeight.bold,
@@ -539,7 +539,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
                 ),
                 const SizedBox(height: 2),
                 const Text(
-                  'Scheduled prior to today and pending completion. Prioritized at top.',
+                  AppStrings.overdueAttentionDesc,
                   style: TextStyle(
                     color: Color(0xFFB91C1C),
                     fontSize: 11,

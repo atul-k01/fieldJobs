@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimens.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/utils/app_snackbar.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../data/auth_repository.dart';
@@ -46,12 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (!success && mounted) {
       final error = ref.read(authStateProvider).errorMessage;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error ?? AppStrings.genericError),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppSnackBar.showError(context, error ?? AppStrings.genericError);
     }
   }
 

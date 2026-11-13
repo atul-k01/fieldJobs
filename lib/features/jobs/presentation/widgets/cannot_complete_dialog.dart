@@ -3,6 +3,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/custom_button.dart';
 
 class CannotCompleteDialog extends StatefulWidget {
@@ -44,12 +45,7 @@ class _CannotCompleteDialogState extends State<CannotCompleteDialog> {
     } else if (custom.isNotEmpty) {
       finalReason = custom;
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select or enter a reason.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppSnackBar.showError(context, AppStrings.cannotCompleteReasonRequired);
       return;
     }
 

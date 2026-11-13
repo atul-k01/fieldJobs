@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_dimens.dart';
+import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 
 class SyncBadge extends StatelessWidget {
@@ -27,7 +28,7 @@ class SyncBadge extends StatelessWidget {
             const Icon(Icons.cloud_off, size: 12, color: Color(0xFFD97706)),
             const SizedBox(width: AppDimens.space4),
             Text(
-              'Not Synced',
+              AppStrings.syncBadgePending,
               style: AppTextStyles.badge.copyWith(
                 fontSize: 10,
                 color: const Color(0xFFD97706),
@@ -55,7 +56,7 @@ class SyncBadge extends StatelessWidget {
             const Icon(Icons.warning_amber_rounded, size: 12, color: AppColors.error),
             const SizedBox(width: AppDimens.space4),
             Text(
-              'Office Conflict',
+              AppStrings.syncBadgeConflict,
               style: AppTextStyles.badge.copyWith(
                 fontSize: 10,
                 color: AppColors.error,
@@ -83,7 +84,7 @@ class SyncBadge extends StatelessWidget {
           const Icon(Icons.cloud_done, size: 12, color: Color(0xFF059669)),
           const SizedBox(width: AppDimens.space4),
           Text(
-            'Synced',
+            AppStrings.syncBadgeSynced,
             style: AppTextStyles.badge.copyWith(
               fontSize: 10,
               color: const Color(0xFF059669),

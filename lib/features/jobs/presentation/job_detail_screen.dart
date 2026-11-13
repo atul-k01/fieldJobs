@@ -7,6 +7,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../core/utils/app_log.dart';
+import '../../../core/utils/app_snackbar.dart';
 import '../../../core/utils/external_launcher.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/status_chip.dart';
@@ -65,13 +66,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
     setState(() {
       _isNotesDirty = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Notes saved locally & queued for sync!'),
-        backgroundColor: AppColors.success,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    AppSnackBar.showSuccess(context, AppStrings.notesSavedSuccess);
   }
 
   void _onStatusChange(String newStatus) {
@@ -157,7 +152,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
         // Explicit Prominent Back Button via AppNavigator
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary, size: 26),
-          tooltip: 'Back to Jobs',
+          tooltip: AppStrings.backToJobs,
           onPressed: () => AppNavigator.pop(context),
         ),
         title: Column(
@@ -242,7 +237,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Overdue Job - High Priority',
+                            AppStrings.overdueHighPriority,
                             style: TextStyle(
                               color: Color(0xFF991B1B),
                               fontWeight: FontWeight.bold,
@@ -251,7 +246,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Scheduled for ${job.scheduledDate}. Action required: complete or update status promptly.',
+                            '${AppStrings.scheduledLabel} ${job.scheduledDate}. ${AppStrings.overdueNoticeAction}',
                             style: const TextStyle(
                               color: Color(0xFFB91C1C),
                               fontSize: 12,
@@ -317,7 +312,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                             border: Border.all(color: AppColors.divider),
                           ),
                           child: Text(
-                            'Version ${job.version}',
+                            '${AppStrings.versionPrefix} ${job.version}',
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.textSecondary,
                               fontWeight: FontWeight.bold,
@@ -356,7 +351,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Scheduled: ${job.scheduledDate} (${job.timeWindow})',
+                                '${AppStrings.scheduledLabel} ${job.scheduledDate} (${job.timeWindow})',
                                 style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
                               ),
                             ],
@@ -427,16 +422,16 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Upcoming Job • ${job.scheduledDate}',
+                            '${AppStrings.upcomingJobTitle} • ${job.scheduledDate}',
                             style: AppTextStyles.h3.copyWith(
                               color: AppColors.primaryDark,
                               fontSize: 14,
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            'This job is scheduled for future work. Workflow actions will unlock on ${job.scheduledDate}.',
-                            style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
+                          const Text(
+                            AppStrings.upcomingLockedMsg,
+                            style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
                           ),
                         ],
                       ),
@@ -495,14 +490,14 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                     const Divider(height: AppDimens.space24),
                     _buildInfoRow(
                       icon: Icons.person_outline,
-                      title: 'Customer Name',
+                      title: AppStrings.customerName,
                       value: job.customerName,
                     ),
                     const SizedBox(height: AppDimens.space12),
                     _buildInfoRow(
                       icon: Icons.phone_outlined,
-                      title: 'Contact Phone',
-                      value: job.customerPhone.isNotEmpty ? job.customerPhone : 'Not provided',
+                      title: AppStrings.contactPhone,
+                      value: job.customerPhone.isNotEmpty ? job.customerPhone : AppStrings.notProvided,
                       onTap: job.customerPhone.isNotEmpty
                           ? () => ExternalLauncher.makePhoneCall(context, job.customerPhone)
                           : null,
@@ -523,7 +518,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                                     Icon(Icons.call_rounded, size: 14, color: Color(0xFF059669)),
                                     SizedBox(width: 4),
                                     Text(
-                                      'Call',
+                                      AppStrings.call,
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
@@ -561,7 +556,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                                   Icon(Icons.directions_rounded, size: 14, color: AppColors.primaryDark),
                                   SizedBox(width: 4),
                                   Text(
-                                    'Map',
+                                    AppStrings.map,
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -575,15 +570,10 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                           const SizedBox(width: 4),
                           IconButton(
                             icon: const Icon(Icons.copy_rounded, size: 18, color: AppColors.textSecondary),
-                            tooltip: 'Copy Address',
+                            tooltip: AppStrings.copyAddress,
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: job.address));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Address copied to clipboard'),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
+                              AppSnackBar.showSuccess(context, AppStrings.addressCopied);
                             },
                           ),
                         ],
