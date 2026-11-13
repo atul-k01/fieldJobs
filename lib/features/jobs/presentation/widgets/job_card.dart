@@ -42,7 +42,7 @@ class JobCard extends StatelessWidget {
               // Left color indicator stripe based on status
               Container(
                 width: 5,
-                color: _getStatusStripeColor(job.status),
+                color: _getStatusStripeColor(job),
               ),
 
               // Card Content
@@ -92,6 +92,30 @@ class JobCard extends StatelessWidget {
                             runSpacing: AppDimens.space4,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
+                              if (job.isOverdue)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEE2E2),
+                                    borderRadius: BorderRadius.circular(AppDimens.radiusSmall),
+                                    border: Border.all(color: const Color(0xFFDC2626), width: 1.0),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(Icons.alarm_on_rounded, size: 12, color: Color(0xFFDC2626)),
+                                      SizedBox(width: 3),
+                                      Text(
+                                        'OVERDUE',
+                                        style: TextStyle(
+                                          color: Color(0xFFDC2626),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               if (job.isPendingSync || job.hasConflict)
                                 SyncBadge(syncStatus: job.syncStatus),
                               StatusChip(status: job.status),
@@ -209,8 +233,9 @@ class JobCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusStripeColor(String status) {
-    switch (status.toLowerCase()) {
+  Color _getStatusStripeColor(JobModel job) {
+    if (job.isOverdue) return const Color(0xFFDC2626);
+    switch (job.status.toLowerCase()) {
       case 'on_site':
         return const Color(0xFFD97706);
       case 'travelling':

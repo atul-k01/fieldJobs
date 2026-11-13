@@ -27,7 +27,7 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -111,6 +111,8 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
     final user = authState.user;
     final todayJobs = jobsState.todayJobs;
     final upcomingJobs = jobsState.upcomingJobs;
+    final historyJobs = jobsState.historyJobs;
+    final overdueCount = jobsState.overdueCount;
 
     return Scaffold(
       appBar: AppBar(
@@ -188,38 +190,46 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
             color: AppColors.surface,
             child: TabBar(
               controller: _tabController,
+              isScrollable: false,
               tabs: [
+                // Tab 1: Today + Overdue
                 Tab(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(AppStrings.todayTab),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
+                          color: overdueCount > 0
+                              ? const Color(0xFFFEE2E2)
+                              : AppColors.primarySurface,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           '${todayJobs.length}',
                           style: AppTextStyles.badge.copyWith(
-                            color: AppColors.primaryDark,
-                            fontSize: 11,
+                            color: overdueCount > 0
+                                ? const Color(0xFFDC2626)
+                                : AppColors.primaryDark,
+                            fontSize: 10,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
+
+                // Tab 2: Upcoming
                 Tab(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(AppStrings.upcomingTab),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.divider,
                           borderRadius: BorderRadius.circular(10),
@@ -228,7 +238,32 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
                           '${upcomingJobs.length}',
                           style: AppTextStyles.badge.copyWith(
                             color: AppColors.textSecondary,
-                            fontSize: 11,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Tab 3: History / Completed
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(AppStrings.historyTab),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD1FAE5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${historyJobs.length}',
+                          style: AppTextStyles.badge.copyWith(
+                            color: const Color(0xFF059669),
+                            fontSize: 10,
                           ),
                         ),
                       ),
@@ -253,24 +288,31 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
             },
           ),
 
-          // Main Job Lists
+          // Main Job Lists (3 Tabs)
           Expanded(
             child: jobsState.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : TabBarView(
                     controller: _tabController,
                     children: [
-                      // Today's Jobs Tab
+                      // Today's Jobs Tab (Includes past Overdue jobs at the top)
                       _buildJobList(
                         jobs: todayJobs,
                         emptyMessage: AppStrings.noJobsToday,
                         isToday: true,
                       ),
 
-                      // Upcoming Jobs Tab
+                      // Upcoming Jobs Tab (Future scheduled)
                       _buildJobList(
                         jobs: upcomingJobs,
                         emptyMessage: AppStrings.noUpcomingJobs,
+                        isToday: false,
+                      ),
+
+                      // History / Completed Tab (All completed past & present jobs)
+                      _buildJobList(
+                        jobs: historyJobs,
+                        emptyMessage: AppStrings.noHistoryJobs,
                         isToday: false,
                       ),
                     ],

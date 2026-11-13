@@ -28,6 +28,7 @@ class JobsState {
 
   List<JobModel> get todayJobs {
     final list = allJobs.where((j) {
+      if (j.isOverdue) return true; // Past unfinished jobs must stay in Today until addressed
       try {
         final parsed = DateTime.parse(j.scheduledDate);
         return DateFormatter.isToday(parsed);
@@ -36,13 +37,18 @@ class JobsState {
       }
     }).toList();
 
-    // Sort: In progress/Travelling first, then assigned, completed last
-    list.sort((a, b) => _statusPriority(a.status).compareTo(_statusPriority(b.status)));
+    // Sort: Overdue first, then active On Site/Travelling, then assigned, completed last
+    list.sort((a, b) {
+      if (a.isOverdue && !b.isOverdue) return -1;
+      if (!a.isOverdue && b.isOverdue) return 1;
+      return _statusPriority(a.status).compareTo(_statusPriority(b.status));
+    });
     return list;
   }
 
   List<JobModel> get upcomingJobs {
     final list = allJobs.where((j) {
+      if (j.isDone) return false;
       try {
         final parsed = DateTime.parse(j.scheduledDate);
         return DateFormatter.isUpcoming(parsed);
@@ -54,6 +60,15 @@ class JobsState {
     list.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
     return list;
   }
+
+  List<JobModel> get historyJobs {
+    final list = allJobs.where((j) => j.isDone).toList();
+    // Sort most recently completed or updated first
+    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return list;
+  }
+
+  int get overdueCount => todayJobs.where((j) => j.isOverdue).length;
 
   int _statusPriority(String status) {
     switch (status) {

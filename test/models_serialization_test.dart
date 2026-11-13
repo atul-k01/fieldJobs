@@ -70,6 +70,32 @@ void main() {
       expect(restored.localPath, '/data/user/0/app/cache/photo_1.jpg');
     });
 
+    test('JobModel isOverdue correctly detects past incomplete jobs', () {
+      const pastIncompleteJob = JobModel(
+        id: 'job-past-1',
+        assignedTo: 'alex@fieldjobs.com',
+        customerName: 'Old Customer',
+        customerPhone: '+44 7700 900111',
+        address: '10 Old Road',
+        scheduledDate: '2020-01-01',
+        timeWindow: '09:00 - 11:00 AM',
+        appliance: 'Oven',
+        problemDescription: 'Faulty heating element',
+        status: 'assigned',
+        updatedAt: '2020-01-01T09:00:00Z',
+      );
+      expect(pastIncompleteJob.isOverdue, true);
+
+      // If it was completed, it is not overdue
+      final pastCompletedJob = pastIncompleteJob.copyWith(status: 'completed');
+      expect(pastCompletedJob.isOverdue, false);
+
+      // Today's job is not overdue
+      final todayStr = DateTime.now().toIso8601String().split('T').first;
+      final todayJob = pastIncompleteJob.copyWith(scheduledDate: todayStr);
+      expect(todayJob.isOverdue, false);
+    });
+
     test('SyncQueueItem encapsulates mutation payload for durable offline queue', () {
       const queueItem = SyncQueueItem(
         id: 'q-uuid-1234',

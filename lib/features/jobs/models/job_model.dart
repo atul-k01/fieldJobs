@@ -45,6 +45,20 @@ class JobModel {
   bool get isCancelled => status == 'cancelled';
   bool get isDone => isCompleted || isCouldNotComplete || isCancelled;
 
+  /// True if job was scheduled before today and is still unfinished (needs technician attention)
+  bool get isOverdue {
+    if (isDone) return false;
+    try {
+      final parsed = DateTime.parse(scheduledDate);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final jobDate = DateTime(parsed.year, parsed.month, parsed.day);
+      return jobDate.isBefore(today);
+    } catch (_) {
+      return false;
+    }
+  }
+
   bool get isPendingSync => syncStatus == 'pending';
   bool get hasConflict => syncStatus == 'conflict';
 

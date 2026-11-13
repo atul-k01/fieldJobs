@@ -30,7 +30,9 @@ class AppStrings {
   static const String myJobs = 'My Jobs';
   static const String todayTab = "Today's Jobs";
   static const String upcomingTab = 'Upcoming Jobs';
+  static const String historyTab = 'Job History';
   static const String jobDetails = 'Job Details';
+  static const String overdueBadge = 'OVERDUE';
 
   // Status Labels
   static const String statusAssigned = 'Assigned';
@@ -77,8 +79,9 @@ class AppStrings {
   static const String conflictResolvedMsg = 'Office updated this job while you were offline. Field changes preserved.';
 
   // Empty states & Errors
-  static const String noJobsToday = 'No jobs scheduled for today.';
+  static const String noJobsToday = 'No pending jobs for today.';
   static const String noUpcomingJobs = 'No upcoming jobs scheduled.';
+  static const String noHistoryJobs = 'No completed job history found.';
   static const String pullToRefresh = 'Pull down to refresh jobs';
   static const String genericError = 'Something went wrong. Please try again.';
   static const String openMap = 'Navigate in Maps';
