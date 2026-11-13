@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:field_jobs/features/jobs/models/checklist_item_model.dart';
 import 'package:field_jobs/features/jobs/models/job_model.dart';
 import 'package:field_jobs/features/jobs/models/job_photo_model.dart';
+import 'package:field_jobs/features/jobs/providers/jobs_provider.dart';
 import 'package:field_jobs/features/sync/models/sync_queue_item.dart';
 
 void main() {
@@ -116,6 +117,43 @@ void main() {
       expect(restored.actionType, 'update_status');
       expect(restored.payload['status'], 'completed');
       expect(restored.baseVersion, 2);
+    });
+
+    test('JobsState filters: completed or cancelled jobs move to history and are removed from today', () {
+      final todayStr = DateTime.now().toIso8601String().split('T').first;
+      final activeToday = JobModel(
+        id: 'job-active',
+        assignedTo: 'alex@fieldjobs.com',
+        customerName: 'Active Customer',
+        customerPhone: '123',
+        address: '123 St',
+        scheduledDate: todayStr,
+        timeWindow: '09:00 - 11:00 AM',
+        appliance: 'Fridge',
+        problemDescription: 'Leaking',
+        status: 'on_site',
+        updatedAt: '2026-11-13T10:00:00Z',
+      );
+
+      final completedToday = activeToday.copyWith(
+        id: 'job-done',
+        status: 'completed',
+      );
+
+      final cancelledToday = activeToday.copyWith(
+        id: 'job-cancelled',
+        status: 'cancelled',
+      );
+
+      final state = JobsState(allJobs: [activeToday, completedToday, cancelledToday]);
+
+      // Today must only contain active jobs
+      expect(state.todayJobs.length, 1);
+      expect(state.todayJobs.first.id, 'job-active');
+
+      // History must contain completed and cancelled jobs
+      expect(state.historyJobs.length, 2);
+      expect(state.historyJobs.map((j) => j.id), containsAll(['job-done', 'job-cancelled']));
     });
   });
 }

@@ -28,6 +28,10 @@ class JobsState {
 
   List<JobModel> get todayJobs {
     final list = allJobs.where((j) {
+      // Once completed, cancelled, or marked couldn't complete,
+      // the job immediately moves to Job History and is removed from Today.
+      if (j.isDone) return false;
+
       if (j.isOverdue) return true; // Past unfinished jobs must stay in Today until addressed
       try {
         final parsed = DateTime.parse(j.scheduledDate);
