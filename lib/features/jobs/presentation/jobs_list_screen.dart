@@ -194,80 +194,92 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
               tabs: [
                 // Tab 1: Today + Overdue
                 Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(AppStrings.todayTab),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: overdueCount > 0
-                              ? const Color(0xFFFEE2E2)
-                              : AppColors.primarySurface,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${todayJobs.length}',
-                          style: AppTextStyles.badge.copyWith(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(AppStrings.todayTab),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
                             color: overdueCount > 0
-                                ? const Color(0xFFDC2626)
-                                : AppColors.primaryDark,
-                            fontSize: 10,
+                                ? const Color(0xFFFEE2E2)
+                                : AppColors.primarySurface,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${todayJobs.length}',
+                            style: AppTextStyles.badge.copyWith(
+                              color: overdueCount > 0
+                                  ? const Color(0xFFDC2626)
+                                  : AppColors.primaryDark,
+                              fontSize: 10,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
                 // Tab 2: Upcoming
                 Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(AppStrings.upcomingTab),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.divider,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${upcomingJobs.length}',
-                          style: AppTextStyles.badge.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 10,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(AppStrings.upcomingTab),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.divider,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${upcomingJobs.length}',
+                            style: AppTextStyles.badge.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: 10,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
                 // Tab 3: History / Completed
                 Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(AppStrings.historyTab),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD1FAE5),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${historyJobs.length}',
-                          style: AppTextStyles.badge.copyWith(
-                            color: const Color(0xFF059669),
-                            fontSize: 10,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(AppStrings.historyTab),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD1FAE5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${historyJobs.length}',
+                            style: AppTextStyles.badge.copyWith(
+                              color: const Color(0xFF059669),
+                              fontSize: 10,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

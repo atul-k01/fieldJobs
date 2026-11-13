@@ -143,11 +143,15 @@ class JobCard extends StatelessWidget {
                             color: AppColors.textSecondary,
                           ),
                           const SizedBox(width: AppDimens.space4),
-                          Text(
-                            job.customerName,
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryDark,
+                          Expanded(
+                            child: Text(
+                              job.customerName,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

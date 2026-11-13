@@ -28,9 +28,9 @@ class AppStrings {
 
   // Navigation & Tabs
   static const String myJobs = 'My Jobs';
-  static const String todayTab = "Today's Jobs";
-  static const String upcomingTab = 'Upcoming Jobs';
-  static const String historyTab = 'Job History';
+  static const String todayTab = 'Today';
+  static const String upcomingTab = 'Upcoming';
+  static const String historyTab = 'History';
   static const String jobDetails = 'Job Details';
   static const String overdueBadge = 'OVERDUE';
 
