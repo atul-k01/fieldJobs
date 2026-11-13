@@ -276,6 +276,8 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             StatusChip(status: job.status),
+                            const SizedBox(width: AppDimens.space8),
+                            SyncBadge(syncStatus: job.syncStatus),
                             if (job.isOverdue) ...[
                               const SizedBox(width: AppDimens.space8),
                               Container(

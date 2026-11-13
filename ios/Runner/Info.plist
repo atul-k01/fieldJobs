@@ -45,5 +45,24 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Network Security & URL Schemes -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>maps</string>
+		<string>comgooglemaps</string>
+		<string>https</string>
+		<string>http</string>
+	</array>
+	<!-- Permissions for Job Attachments -->
+	<key>NSCameraUsageDescription</key>
+	<string>FieldJobs requires camera access to capture appliance repair photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>FieldJobs requires photo library access to attach proof of service.</string>
 </dict>
 </plist>

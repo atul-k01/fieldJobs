@@ -50,7 +50,7 @@ class JobRepository extends BaseRepository {
       () async {
         await _localDataSource.updateJobStatus(jobId, status, reason: reason);
         _syncEngine?.refreshPendingCount();
-        _syncEngine?.processQueue();
+        await _syncEngine?.processQueue();
       },
       operation: 'updateJobStatus($jobId, $status)',
     );
@@ -62,7 +62,7 @@ class JobRepository extends BaseRepository {
       () async {
         await _localDataSource.toggleChecklistItem(itemId, jobId, isCompleted);
         _syncEngine?.refreshPendingCount();
-        _syncEngine?.processQueue();
+        await _syncEngine?.processQueue();
       },
       operation: 'toggleChecklistItem($itemId, isCompleted: $isCompleted)',
     );
@@ -74,7 +74,7 @@ class JobRepository extends BaseRepository {
       () async {
         await _localDataSource.saveNotes(jobId, notes);
         _syncEngine?.refreshPendingCount();
-        _syncEngine?.processQueue();
+        await _syncEngine?.processQueue();
       },
       operation: 'saveNotes($jobId)',
     );
@@ -87,7 +87,7 @@ class JobRepository extends BaseRepository {
         final success = await _localDataSource.attachPhoto(jobId, localPath);
         if (success) {
           _syncEngine?.refreshPendingCount();
-          _syncEngine?.processQueue();
+          await _syncEngine?.processQueue();
         }
         return success;
       },

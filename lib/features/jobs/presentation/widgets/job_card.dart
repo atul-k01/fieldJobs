@@ -127,9 +127,8 @@ class JobCard extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                              if (job.isPendingSync || job.hasConflict)
                                 SyncBadge(syncStatus: job.syncStatus),
-                              StatusChip(status: job.status),
+                                StatusChip(status: job.status),
                             ],
                           ),
                         ],

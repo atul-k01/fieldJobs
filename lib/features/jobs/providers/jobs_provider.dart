@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/supabase_config.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -115,6 +116,7 @@ class JobsNotifier extends StateNotifier<JobsState> {
   final JobRepository _repository;
   final Ref _ref;
   String? _currentUserEmail;
+  StreamSubscription? _syncSubscription;
 
   JobsNotifier(this._repository, this._ref) : super(const JobsState(isLoading: true)) {
     _init();
@@ -128,6 +130,28 @@ class JobsNotifier extends StateNotifier<JobsState> {
     } else {
       state = const JobsState(allJobs: [], isLoading: false);
     }
+
+    // Auto-refresh jobs from DB whenever sync engine finishes a push/pull cycle
+    final syncEngine = _ref.read(syncEngineProvider);
+    _syncSubscription = syncEngine.statusStream.listen((status) {
+      if (!status.isSyncing) {
+        _refreshJobsFromDb();
+      }
+    });
+  }
+
+  Future<void> _refreshJobsFromDb() async {
+    if (_currentUserEmail == null) return;
+    try {
+      final jobs = await _repository.getJobsForTechnician(_currentUserEmail!);
+      state = state.copyWith(allJobs: jobs);
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _syncSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> loadJobs() async {
