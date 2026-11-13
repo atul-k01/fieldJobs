@@ -1,24 +1,25 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../utils/app_log.dart';
 
 /// Configuration and initialization wrapper for Supabase.
 class SupabaseConfig {
   SupabaseConfig._();
 
-  // Default placeholders: User can replace with their actual Supabase project keys
+  // Connected to live Supabase Backend
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://xyzcompany.supabase.co',
+    defaultValue: 'https://atadzziyjoadkwotlvms.supabase.co',
   );
 
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: 'public-anon-key-placeholder',
+    defaultValue: 'sb_publishable_O3qnTEJSOKKvGOB08-7cxg_8dvvlCyE',
   );
 
   static bool _isInitialized = false;
   static bool get isInitialized => _isInitialized;
 
-  /// Safely initialize Supabase. If credentials are placeholder or network fails,
+  /// Safely initialize Supabase. If network fails or keys are invalid,
   /// the app operates gracefully in durable offline mode.
   static Future<void> init() async {
     try {
@@ -31,9 +32,10 @@ class SupabaseConfig {
           anonKey: supabaseAnonKey,
         );
         _isInitialized = true;
+        AppLog.i('SupabaseConfig', 'Connected to Supabase: $supabaseUrl');
       }
-    } catch (_) {
-      // In offline mode or with mock credentials, don't crash
+    } catch (e) {
+      AppLog.w('SupabaseConfig', 'Supabase initialization failed, operating offline: $e');
       _isInitialized = false;
     }
   }

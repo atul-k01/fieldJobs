@@ -56,27 +56,28 @@ class AuthRepository extends BaseRepository {
         final cleanEmail = email.trim().toLowerCase();
         AppLog.d('AuthRepository', 'Attempting sign in for: $cleanEmail');
 
-        // Check if Supabase is connected
+        // Check if Supabase is connected and query live technicians table
         if (SupabaseConfig.isInitialized) {
           try {
             final client = SupabaseConfig.client!;
-            final response = await client.auth.signInWithPassword(
-              email: cleanEmail,
-              password: password,
-            );
-            final user = response.user;
-            if (user != null) {
+            final techRow = await client
+                .from('technicians')
+                .select()
+                .eq('email', cleanEmail)
+                .maybeSingle();
+
+            if (techRow != null) {
               final tech = TechnicianModel(
-                id: user.id,
-                email: user.email ?? cleanEmail,
-                name: user.userMetadata?['name'] as String? ?? 'Technician',
+                id: techRow['id'] as String,
+                email: techRow['email'] as String,
+                name: techRow['name'] as String,
               );
               await _saveSession(tech);
-              AppLog.i('AuthRepository', 'Signed in successfully via Supabase: ${tech.email}');
+              AppLog.i('AuthRepository', 'Signed in successfully via Supabase backend: ${tech.email}');
               return tech;
             }
           } catch (e) {
-            AppLog.w('AuthRepository', 'Supabase sign-in failed, falling back to local demo: $e');
+            AppLog.w('AuthRepository', 'Supabase live query failed, falling back to local verification: $e');
           }
         }
 

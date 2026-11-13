@@ -12,10 +12,12 @@ class AppStrings {
   static const String loginSubtitle =
       'Sign in with your technician account to access your assigned jobs.';
   static const String emailLabel = 'Technician Email';
+  static const String emailHint = 'e.g. atul@fieldjobs.com';
   static const String passwordLabel = 'Password';
   static const String loginButton = 'Sign In';
   static const String loggingIn = 'Signing in...';
   static const String demoAccountsNotice = 'Demo Accounts:';
+  static const String autofillPrompt = 'Tap below to autofill evaluation credentials:';
   static const String demoAccount1 = 'atul@fieldjobs.com';
   static const String demoAccount2 = 'nitin@fieldjobs.com';
   static const String demoPasswordNotice =

@@ -102,4 +102,12 @@ class JobRepository extends BaseRepository {
       operation: 'fetchRemoteJobs($email)',
     );
   }
+
+  /// Store remote jobs in local SQLite cache
+  Future<void> saveRemoteJobs(String technicianEmail, List<JobModel> remoteJobs) {
+    return safeCall(
+      () => _localDataSource.saveRemoteJobs(technicianEmail, remoteJobs),
+      operation: 'saveRemoteJobs($technicianEmail)',
+    );
+  }
 }

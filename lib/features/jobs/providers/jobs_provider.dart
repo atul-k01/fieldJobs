@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/supabase_config.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../sync/providers/sync_provider.dart';
 import '../data/job_local_datasource.dart';
@@ -134,7 +135,15 @@ class JobsNotifier extends StateNotifier<JobsState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      await _repository.ensureDemoDataSeeded(_currentUserEmail!);
+      if (SupabaseConfig.isInitialized) {
+        // Fetch live jobs directly from Supabase remote backend
+        final remoteJobs = await _repository.fetchRemoteJobs(_currentUserEmail!);
+        if (remoteJobs.isNotEmpty) {
+          await _repository.saveRemoteJobs(_currentUserEmail!, remoteJobs);
+        }
+      } else {
+        await _repository.ensureDemoDataSeeded(_currentUserEmail!);
+      }
       final jobs = await _repository.getJobsForTechnician(_currentUserEmail!);
       state = JobsState(allJobs: jobs, isLoading: false);
       _ref.read(syncEngineProvider).refreshPendingCount();

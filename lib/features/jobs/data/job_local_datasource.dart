@@ -122,6 +122,41 @@ class JobLocalDataSource {
     }
   }
 
+  /// Saves or refreshes remote jobs pulled from Supabase backend into local SQLite
+  Future<void> saveRemoteJobs(String technicianEmail, List<JobModel> remoteJobs) async {
+    final db = await _dbManager.database;
+    await db.transaction((txn) async {
+      // 1. Clean up legacy static mock jobs not present in remote backend
+      final remoteJobIds = remoteJobs.map((j) => j.id).toList();
+      if (remoteJobIds.isNotEmpty) {
+        final placeholders = List.filled(remoteJobIds.length, '?').join(',');
+        await txn.delete(
+          DbTables.jobs,
+          where: '${JobColumns.assignedTo} = ? AND ${JobColumns.id} NOT IN ($placeholders) AND ${JobColumns.syncStatus} != ?',
+          whereArgs: [technicianEmail.toLowerCase(), ...remoteJobIds, 'pending'],
+        );
+      }
+
+      // 2. Insert / update remote jobs and checklists
+      final batch = txn.batch();
+      for (final job in remoteJobs) {
+        batch.insert(
+          DbTables.jobs,
+          job.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        for (final chk in job.checklists) {
+          batch.insert(
+            DbTables.checklists,
+            chk.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      }
+      await batch.commit(noResult: true);
+    });
+  }
+
   /// Get all jobs for a technician, including their checklists and photos
   Future<List<JobModel>> getJobsForTechnician(String email) async {
     final db = await _dbManager.database;

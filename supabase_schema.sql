@@ -1,5 +1,5 @@
 -- ============================================================================
--- FieldJobs Supabase Backend Schema & Seed Script
+-- FieldJobs Supabase Backend Schema & Seed Script (Atul & Nitin - Tricity)
 -- Compatible with Supabase PostgreSQL
 -- ============================================================================
 
@@ -54,7 +54,7 @@ CREATE POLICY "Allow public read-write for demo jobs" ON public.jobs FOR ALL USI
 CREATE POLICY "Allow public read-write for demo checklists" ON public.job_checklists FOR ALL USING (true) WITH CHECK (true);
 
 -- ============================================================================
--- 5. Seed Demo Technicians (Atul Kumar & Nitin Sharma)
+-- 5. Seed Technicians (Atul Kumar & Nitin Sharma)
 -- ============================================================================
 INSERT INTO public.technicians (id, email, name)
 VALUES 
@@ -63,18 +63,53 @@ VALUES
 ON CONFLICT (id) DO UPDATE 
 SET email = EXCLUDED.email, name = EXCLUDED.name;
 
+-- Clear previous jobs so History is 100% clean and empty
+TRUNCATE TABLE public.job_checklists, public.jobs CASCADE;
+
 -- ============================================================================
--- 6. Seed 200 Demo Jobs in Tricity (Chandigarh, Mohali, Panchkula)
+-- 6. Seed Isolated Tricity Jobs for Atul and Nitin
+-- History: 0 jobs (empty until worked on)
+-- Today: 2 Overdue + 5 Active jobs
+-- Upcoming: 43 future jobs
 -- ============================================================================
 DO $$
 DECLARE
-    tech_emails TEXT[] := ARRAY['atul@fieldjobs.com', 'nitin@fieldjobs.com'];
-    tech_email TEXT;
-    day_offset INT;
-    job_idx INT;
-    jobs_count INT;
-    job_id_counter INT := 1;
-    curr_job_id TEXT;
+    -- Distinct Tricity Locations for Atul (Chandigarh & Mohali)
+    atul_streets TEXT[] := ARRAY[
+        'House # 1204, Sector 35-B, Chandigarh',
+        'SCO 42, Sector 17-C, Chandigarh',
+        'House # 418, Sector 8-A, Chandigarh',
+        'Flat 302, Sector 43-B, Chandigarh',
+        'Booth 55, Sector 22-D, Chandigarh',
+        'Modern Housing Complex, Mani Majra, Chandigarh',
+        'House # 882, Sector 15-A, Chandigarh',
+        'House # 245, Phase 7, Mohali',
+        'SCF 18, Phase 3B2, Mohali',
+        'Flat 401, Homeland Heights, Sector 70, Mohali'
+    ];
+    atul_customers TEXT[] := ARRAY[
+        'Gurpreet Singh', 'Simran Kaur', 'Amit Sharma', 'Harpreet Sandhu',
+        'Priya Sharma', 'Rohan Verma', 'Manpreet Kaur', 'Vikram Malhotra'
+    ];
+
+    -- Distinct Tricity Locations for Nitin (Panchkula & Mohali Aerocity/JLPL)
+    nitin_streets TEXT[] := ARRAY[
+        'House # 514, Sector 20, Panchkula',
+        'SCO 88, Sector 14, Panchkula',
+        'House # 128, Sector 7, Panchkula',
+        'House # 95, MDC Sector 4, Panchkula',
+        'House # 732, Sector 21, Panchkula',
+        'Flat 204, GH-43, Sector 20, Panchkula',
+        'House # 1420, Sector 70, Mohali',
+        'Plot 512, JLPL Industrial Area, Sector 82, Mohali',
+        'Block C, Aerocity, Mohali',
+        'House # 88, Phase 5, Mohali'
+    ];
+    nitin_customers TEXT[] := ARRAY[
+        'Neha Gupta', 'Rajesh Kumar', 'Jaspreet Singh', 'Anjali Mehra',
+        'Aman Deep', 'Sunita Bansal', 'Karanvir Bajwa', 'Pooja Chawla'
+    ];
+
     appliances TEXT[] := ARRAY[
         'Voltas 1.5 Ton 5-Star Inverter Split AC',
         'LG 340L Double Door Smart Inverter Refrigerator',
@@ -87,6 +122,7 @@ DECLARE
         'Panasonic 27L Convection Microwave Oven',
         'Daikin 1.8 Ton 3-Star Inverter Split AC'
     ];
+
     problems TEXT[] := ARRAY[
         'AC not cooling properly, outdoor fan motor tripping MCB',
         'Refrigerator bottom freezer leaking water, temperature fluctuating',
@@ -97,104 +133,120 @@ DECLARE
         'Refrigerator compressor clicking repeatedly every 2 minutes',
         'Washing machine water inlet solenoid valve stuck open, overflowing'
     ];
-    customers TEXT[] := ARRAY[
-        'Gurpreet Singh', 'Simran Kaur', 'Amit Sharma', 'Harpreet Sandhu',
-        'Priya Sharma', 'Rohan Verma', 'Manpreet Kaur', 'Vikram Malhotra',
-        'Neha Gupta', 'Rajesh Kumar', 'Jaspreet Singh', 'Anjali Mehra'
-    ];
-    streets TEXT[] := ARRAY[
-        -- Chandigarh
-        'House # 1204, Sector 35-B, Chandigarh',
-        'SCO 42, Sector 17-C, Chandigarh',
-        'House # 418, Sector 8-A, Chandigarh',
-        'Flat 302, Sector 43-B, Chandigarh',
-        'Booth 55, Sector 22-D, Chandigarh',
-        'Modern Housing Complex, Mani Majra, Chandigarh',
-        -- Mohali
-        'House # 245, Phase 7, Mohali',
-        'SCF 18, Phase 3B2, Mohali',
-        'House # 1420, Sector 70, Mohali',
-        'Flat 401, Homeland Heights, Sector 70, Mohali',
-        'Plot 512, JLPL Industrial Area, Sector 82, Mohali',
-        'Block C, Aerocity, Mohali',
-        -- Panchkula
-        'House # 514, Sector 20, Panchkula',
-        'SCO 88, Sector 14, Panchkula',
-        'House # 128, Sector 7, Panchkula',
-        'House # 95, MDC Sector 4, Panchkula',
-        'House # 732, Sector 21, Panchkula'
-    ];
-    windows TEXT[] := ARRAY['08:00 - 10:00 AM', '10:00 - 12:00 PM', '12:30 - 02:30 PM', '02:30 - 04:30 PM'];
+
+    windows TEXT[] := ARRAY['08:00 - 10:00 AM', '10:00 - 12:00 PM', '12:30 - 02:30 PM', '02:30 - 04:30 PM', '04:30 - 06:30 PM'];
+
+    day_offset INT;
+    job_idx INT;
+    jobs_count INT;
+    job_counter INT := 1;
+    curr_job_id TEXT;
+    curr_status TEXT;
 BEGIN
-    FOREACH tech_email IN ARRAY tech_emails LOOP
-        -- Generate 100 jobs per technician: 2 overdue (day -1), 5 today (day 0), rest upcoming (day 1..12)
-        FOR day_offset IN -1..12 LOOP
-            IF day_offset = -1 THEN
-                jobs_count := 2;
-            ELSIF day_offset = 0 THEN
-                jobs_count := 5;
+    -- 1. SEED 50 JOBS FOR ATUL (atul@fieldjobs.com)
+    job_counter := 1;
+    FOR day_offset IN -1..8 LOOP
+        IF day_offset = -1 THEN
+            jobs_count := 2; -- 2 Overdue jobs from yesterday
+        ELSIF day_offset = 0 THEN
+            jobs_count := 5; -- 5 Today jobs (1 on_site, 1 travelling, 3 assigned)
+        ELSE
+            jobs_count := 5; -- 5 Upcoming jobs per day
+        END IF;
+
+        FOR job_idx IN 1..jobs_count LOOP
+            curr_job_id := 'job-atul-' || LPAD(job_counter::text, 4, '0');
+
+            -- Zero history initial state: all jobs are active, none completed/cancelled
+            IF day_offset = 0 AND job_idx = 1 THEN
+                curr_status := 'on_site';
+            ELSIF day_offset = 0 AND job_idx = 2 THEN
+                curr_status := 'travelling';
             ELSE
-                jobs_count := 7;
+                curr_status := 'assigned';
             END IF;
 
-            FOR job_idx IN 1..jobs_count LOOP
-                curr_job_id := 'job-' || LPAD(job_id_counter::text, 4, '0');
-                
-                INSERT INTO public.jobs (
-                    id, assigned_to, customer_name, customer_phone, address,
-                    scheduled_date, time_window, appliance, problem_description,
-                    status, version, sync_status, updated_at
-                ) VALUES (
-                    curr_job_id,
-                    tech_email,
-                    customers[(job_id_counter % array_length(customers, 1)) + 1],
-                    '+91 98140 ' || LPAD((10000 + job_id_counter)::text, 5, '0'),
-                    streets[(job_id_counter % array_length(streets, 1)) + 1],
-                    (CURRENT_DATE + (day_offset || ' days')::interval)::date,
-                    windows[(job_idx % array_length(windows, 1)) + 1],
-                    appliances[(job_id_counter % array_length(appliances, 1)) + 1],
-                    problems[(job_id_counter % array_length(problems, 1)) + 1],
-                    CASE WHEN day_offset = 0 AND job_idx = 1 THEN 'on_site'
-                         WHEN day_offset = 0 AND job_idx = 2 THEN 'travelling'
-                         ELSE 'assigned' END,
-                    1,
-                    'synced',
-                    now()
-                ) ON CONFLICT (id) DO NOTHING;
+            INSERT INTO public.jobs (
+                id, assigned_to, customer_name, customer_phone, address,
+                scheduled_date, time_window, appliance, problem_description,
+                status, version, sync_status, updated_at
+            ) VALUES (
+                curr_job_id,
+                'atul@fieldjobs.com',
+                atul_customers[(job_counter % array_length(atul_customers, 1)) + 1],
+                '+91 98140 ' || LPAD((10000 + job_counter)::text, 5, '0'),
+                atul_streets[(job_counter % array_length(atul_streets, 1)) + 1],
+                (CURRENT_DATE + (day_offset || ' days')::interval)::date,
+                windows[(job_idx % array_length(windows, 1)) + 1],
+                appliances[(job_counter % array_length(appliances, 1)) + 1],
+                problems[(job_counter % array_length(problems, 1)) + 1],
+                curr_status,
+                1,
+                'synced',
+                now()
+            );
 
-                -- Insert standard checklist items
-                INSERT INTO public.job_checklists (id, job_id, title, is_completed, sort_order)
-                VALUES 
-                    (curr_job_id || '-chk-1', curr_job_id, 'Visual electrical and earth leakage inspection', false, 0),
-                    (curr_job_id || '-chk-2', curr_job_id, 'Run diagnostic test cycle and inspect error logs', false, 1),
-                    (curr_job_id || '-chk-3', curr_job_id, 'Test components and replace damaged parts', false, 2),
-                    (curr_job_id || '-chk-4', curr_job_id, 'Verify functional test cycle with customer', false, 3)
-                ON CONFLICT (id) DO NOTHING;
+            INSERT INTO public.job_checklists (id, job_id, title, is_completed, sort_order)
+            VALUES 
+                (curr_job_id || '-chk-1', curr_job_id, 'Visual electrical and earth leakage inspection', (curr_status = 'on_site'), 0),
+                (curr_job_id || '-chk-2', curr_job_id, 'Run diagnostic test cycle and inspect error logs', false, 1),
+                (curr_job_id || '-chk-3', curr_job_id, 'Test components and replace damaged parts', false, 2),
+                (curr_job_id || '-chk-4', curr_job_id, 'Verify functional test cycle with customer', false, 3);
 
-                job_id_counter := job_id_counter + 1;
-            END LOOP;
+            job_counter := job_counter + 1;
+        END LOOP;
+    END LOOP;
+
+    -- 2. SEED 50 SEPARATE JOBS FOR NITIN (nitin@fieldjobs.com)
+    job_counter := 1;
+    FOR day_offset IN -1..8 LOOP
+        IF day_offset = -1 THEN
+            jobs_count := 2; -- 2 Overdue jobs from yesterday
+        ELSIF day_offset = 0 THEN
+            jobs_count := 5; -- 5 Today jobs
+        ELSE
+            jobs_count := 5; -- 5 Upcoming jobs per day
+        END IF;
+
+        FOR job_idx IN 1..jobs_count LOOP
+            curr_job_id := 'job-nitin-' || LPAD(job_counter::text, 4, '0');
+
+            IF day_offset = 0 AND job_idx = 1 THEN
+                curr_status := 'on_site';
+            ELSIF day_offset = 0 AND job_idx = 2 THEN
+                curr_status := 'travelling';
+            ELSE
+                curr_status := 'assigned';
+            END IF;
+
+            INSERT INTO public.jobs (
+                id, assigned_to, customer_name, customer_phone, address,
+                scheduled_date, time_window, appliance, problem_description,
+                status, version, sync_status, updated_at
+            ) VALUES (
+                curr_job_id,
+                'nitin@fieldjobs.com',
+                nitin_customers[(job_counter % array_length(nitin_customers, 1)) + 1],
+                '+91 98720 ' || LPAD((20000 + job_counter)::text, 5, '0'),
+                nitin_streets[(job_counter % array_length(nitin_streets, 1)) + 1],
+                (CURRENT_DATE + (day_offset || ' days')::interval)::date,
+                windows[(job_idx % array_length(windows, 1)) + 1],
+                appliances[(job_counter % array_length(appliances, 1)) + 1],
+                problems[(job_counter % array_length(problems, 1)) + 1],
+                curr_status,
+                1,
+                'synced',
+                now()
+            );
+
+            INSERT INTO public.job_checklists (id, job_id, title, is_completed, sort_order)
+            VALUES 
+                (curr_job_id || '-chk-1', curr_job_id, 'Visual electrical and earth leakage inspection', (curr_status = 'on_site'), 0),
+                (curr_job_id || '-chk-2', curr_job_id, 'Run diagnostic test cycle and inspect error logs', false, 1),
+                (curr_job_id || '-chk-3', curr_job_id, 'Test components and replace damaged parts', false, 2),
+                (curr_job_id || '-chk-4', curr_job_id, 'Verify functional test cycle with customer', false, 3);
+
+            job_counter := job_counter + 1;
         END LOOP;
     END LOOP;
 END $$;
-
--- ============================================================================
--- DEMO OFFICE CHANGES (Run these in SQL Editor during interview evaluation)
--- ============================================================================
-
--- SCENARIO A: Office cancels Job 1 while technician is working offline
--- UPDATE public.jobs 
--- SET status = 'cancelled', version = version + 1, updated_at = now() 
--- WHERE id = 'job-0001';
-
--- SCENARIO B: Office edits problem description & reschedules Job 2
--- UPDATE public.jobs 
--- SET problem_description = 'URGENT: Customer reports unit is overheating and sparking. Rescheduled to 03:00 PM.',
---     time_window = '03:00 - 05:00 PM',
---     version = version + 1, 
---     updated_at = now() 
--- WHERE id = 'job-0002';
-
--- SCENARIO C: Office reassigns Job 3 from Alex to Sarah
--- UPDATE public.jobs 
--- SET assigned_to = 'sarah@fieldjobs.com', version = version + 1, updated_at = now() 
--- WHERE id = 'job-0003';

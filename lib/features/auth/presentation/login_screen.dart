@@ -122,7 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           CustomTextField(
                             controller: _emailController,
                             label: AppStrings.emailLabel,
-                            hintText: 'e.g. alex@fieldjobs.com',
+                            hintText: AppStrings.emailHint,
                             prefixIcon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                             validator: (val) {
@@ -199,7 +199,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: AppDimens.space8),
                         Text(
-                          'Tap below to autofill evaluation credentials:',
+                          AppStrings.autofillPrompt,
                           style: AppTextStyles.caption,
                         ),
                         const SizedBox(height: AppDimens.space12),
