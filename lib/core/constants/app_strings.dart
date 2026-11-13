@@ -75,6 +75,23 @@ class AppStrings {
   static const String markCannotComplete = "Couldn't Complete";
   static const String cannotCompleteReasonTitle =
       "Reason Job Couldn't Be Completed";
+  static const String cannotCompleteSubtitle =
+      'Mandatory reason required for office dispatch & customer follow-up.';
+  static const String selectReasonPrompt = 'Select primary reason:';
+  static const String additionalNotesOptional = 'Additional notes (Optional)';
+  static const String reasonCustomerNotHome =
+      'Customer not home / no answer at door';
+  static const String reasonPartsUnavailable =
+      'Spare parts unavailable on vehicle';
+  static const String reasonAccessBlocked =
+      'Access blocked / safety hazard on site';
+  static const String reasonWrongAppliance =
+      'Incorrect appliance model reported';
+  static const String reasonSpecialistRequired =
+      'Specialist equipment required';
+  static const String reasonRescheduleRequested =
+      'Customer requested reschedule';
+  static const String reasonOther = 'Other / Custom reason';
   static const String cannotCompleteHint =
       'e.g. Customer not home, parts unavailable, safety hazard...';
   static const String submitReason = 'Confirm Status';
