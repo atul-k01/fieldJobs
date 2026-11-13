@@ -52,9 +52,12 @@ class JobCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top Row: Time Window, Status Chip, Sync Badge
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                      // Top Row: Time Window, Status Chip, Sync Badge (Zero-overflow responsive layout)
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: AppDimens.space8,
+                        runSpacing: AppDimens.space6,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -84,12 +87,16 @@ class JobCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const Spacer(),
-                          if (job.isPendingSync || job.hasConflict) ...[
-                            SyncBadge(syncStatus: job.syncStatus),
-                            const SizedBox(width: AppDimens.space8),
-                          ],
-                          StatusChip(status: job.status),
+                          Wrap(
+                            spacing: AppDimens.space6,
+                            runSpacing: AppDimens.space4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              if (job.isPendingSync || job.hasConflict)
+                                SyncBadge(syncStatus: job.syncStatus),
+                              StatusChip(status: job.status),
+                            ],
+                          ),
                         ],
                       ),
                       const SizedBox(height: AppDimens.space12),

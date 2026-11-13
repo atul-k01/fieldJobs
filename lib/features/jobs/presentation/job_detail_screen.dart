@@ -169,6 +169,8 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
             Text(
               '${job.customerName} • ${job.timeWindow}',
               style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -227,10 +229,13 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: AppDimens.space8,
+                      runSpacing: AppDimens.space6,
                       children: [
                         StatusChip(status: job.status),
-                        const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(

@@ -157,11 +157,15 @@ class _JobsListScreenState extends ConsumerState<JobsListScreen>
                         ),
                       ),
                       const Text(' • ', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
-                      Text(
-                        user?.email ?? '',
-                        style: AppTextStyles.caption.copyWith(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
+                      Flexible(
+                        child: Text(
+                          user?.email ?? '',
+                          style: AppTextStyles.caption.copyWith(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
